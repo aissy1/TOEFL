@@ -6,60 +6,7 @@ import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import NavigatorBox from '../layouts/navigator-question';
 import TextToSpeech from '../utils/TextToSpeech';
 
-// const listenings = [
-//     {
-//         id: 1,
-//         title: 'Listening 1',
-//         passage: `Advisor: Hi John. How can I help you today?
-
-//         John: Hi, I’m thinking about changing my major from biology to environmental science, but I’m not sure if it’s the right decision.
-
-//         Advisor: That’s a big decision. What’s making you consider the change?
-
-//         John: Well, I’ve always been interested in environmental issues, and I think environmental science might be a better fit for my career goals. But I’m worried about how this will affect my graduation timeline.
-
-//         Advisor: Changing majors can sometimes extend your time in school, but it’s important to study something you’re passionate about. Have you checked how many of your biology credits can be transferred to the environmental science program?
-
-//         John: Not yet. I wanted to get your opinion first.
-
-//         Advisor: I recommend meeting with the department head of environmental science to see how your current credits apply. Also, consider if you’re willing to take additional courses during summer sessions to stay on track for graduation.
-
-//         John: That’s a good idea. I’ll set up a meeting with the department head. Thanks for your advice!`,
-//         questions: [
-//             { id: 1, question: 'Tono membaca artikel dan menyimpulkan...', choices: ['A', 'B', 'C', 'D'], correctAnswer: 'A' },
-//             { id: 2, question: 'Apa tujuan utama artikel?', choices: ['A', 'B', 'C', 'D'], correctAnswer: 'B' },
-//             { id: 3, question: 'Tono membaca artikel dan menyimpulkan...', choices: ['A', 'B', 'C', 'D'], correctAnswer: 'A' },
-//             { id: 4, question: 'Apa tujuan utama artikel?', choices: ['A', 'B', 'C', 'D'], correctAnswer: 'B' },
-//             { id: 5, question: 'Tono membaca artikel dan menyimpulkan...', choices: ['A', 'B', 'C', 'D'], correctAnswer: 'A' },
-//         ],
-//     },
-//     {
-//         id: 2,
-//         title: 'Reading 2',
-//         passage: `A topic of increasing relevance to the conservation of marine life is bycatch—fish and other animals that are unintentionally
-//                     caught in the process of fishing for a targeted population of fish. Bycatch is a common occurrence in longline fishing, which
-//                     utilizes a long heavy fishing line- with baited hooks placed at intervals, and in trawling, which utilizes a fishing net (trawl)
-//                     that is dragged along the ocean floor or through the mid-ocean waters. Few fisheries employ gear that can catch one species to the
-//                     exclusion of all others. Dolphins, whales, and turtles are frequently captured in nets set for tunas and billfishes, and seabirds
-//                     and turtles are caught in longline sets. Because bycatch often goes unreported, it is difficult to accurately estimate its extent.
-//                     Available data indicate that discarded biomass (organic matter from living things) amounts to 25–30 percent of official catch, or
-//                     about 30 million metric tons. The bycatch problem is particularly acute when trawl nets with small mesh sizes (smallerthan-average
-//                     holes in the net material) are dragged along the bottom of the ocean in pursuit of groundfish or shrimp. Because of the small mesh
-//                     size of the shrimp trawl nets, most of the fishes captured are either juveniles (young), smaller than legal size limits, or
-//                     undesirable small species. Even larger mesh sizes do not prevent bycatch because once the net begins to fill with fish or shrimp,
-//                     small individuals caught subsequently are trapped without ever encountering the mesh. In any case, these incidental captures are
-//                     unmarketable and are usually shoveled back over the side of the vessel dead or dying.`,
-//         questions: [
-//             { id: 6, question: 'Tono membaca artikel dan menyimpulkan...', choices: ['A', 'B', 'C', 'D'], correctAnswer: 'A' },
-//             { id: 7, question: 'Apa tujuan utama artikel?', choices: ['A', 'B', 'C', 'D'], correctAnswer: 'B' },
-//             { id: 8, question: 'Tono membaca artikel dan menyimpulkan...', choices: ['A', 'B', 'C', 'D'], correctAnswer: 'A' },
-//             { id: 9, question: 'Apa tujuan utama artikel?', choices: ['A', 'B', 'C', 'D'], correctAnswer: 'B' },
-//             { id: 10, question: 'Tono membaca artikel dan menyimpulkan...', choices: ['A', 'B', 'C', 'D'], correctAnswer: 'A' },
-//         ],
-//     },
-// ];
-
-const ListeningQuestion = forwardRef(function ReadingQuestion({ onComplete, section, questions }: Props, ref) {
+const ListeningQuestion = forwardRef(function ListeningQuestion({ onComplete, section, questions }: Props, ref) {
     const { data, setData, post } = useForm({
         answers: {} as Record<number, string>,
         currentIndex: 0,
@@ -68,16 +15,18 @@ const ListeningQuestion = forwardRef(function ReadingQuestion({ onComplete, sect
         section: section,
     });
 
-    const [flagged, setFlag] = useState<Record<number, boolean>>({}) || false;
+    const [flagged, setFlag] = useState<Record<number, boolean>>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const flatQuestions = questions.flatMap((listening) => listening.questions.map((q) => ({ ...q, listeningId: listening.id })));
+    const flatQuestions = (questions as any[]).flatMap((listening: any) => 
+        listening.questions.map((q: any) => ({ ...q, listeningId: listening.id }))
+    );
 
     const currentQuestion = flatQuestions[data.currentQuestionIndex];
-    const currentListening = questions.find((r) => r.id === currentQuestion.listeningId)!;
+    const currentListening = questions.find((r) => r.id === currentQuestion?.listeningId);
 
     const toggleFlag = (id: number) => {
         setFlag((prev) => ({ ...prev, [id]: !prev[id] }));
-        console.log(flagged);
     };
 
     const handlePrev = () => {
@@ -90,15 +39,15 @@ const ListeningQuestion = forwardRef(function ReadingQuestion({ onComplete, sect
         if (data.currentQuestionIndex < flatQuestions.length - 1) {
             setData('currentQuestionIndex', data.currentQuestionIndex + 1);
         } else {
+            // If it's the last question, submit the test
             handleSubmit();
         }
     };
 
-    const handleSubmit = () => {
+    const calculateScore = () => {
         let score = 0;
-
-        questions.forEach((listening) =>
-            listening.questions.forEach((q) => {
+        (questions as any[]).forEach((listening: any) =>
+            listening.questions.forEach((q: any) => {
                 const userAnswer = data.answers[q.id];
                 const correctAnswer = q.correctAnswer;
 
@@ -107,21 +56,43 @@ const ListeningQuestion = forwardRef(function ReadingQuestion({ onComplete, sect
                 }
             }),
         );
-
-        const countScore = (score / flatQuestions.length) * 30;
-        setData('score', countScore);
+        return (score / flatQuestions.length) * 30;
     };
 
+    const handleSubmit = async () => {
+        if (isSubmitting) return; // Prevent double submission
+        
+        setIsSubmitting(true);
+        
+        try {
+            const calculatedScore = calculateScore();
+            
+            // Update score in form data
+            setData('score', calculatedScore);
+            
+            // Submit to backend
+            post('/submit-test');
+            
+            // Call onComplete to move to next section
+            onComplete();
+            
+        } catch (error) {
+            console.error('Error submitting test:', error);
+            setIsSubmitting(false);
+        }
+    };
+
+    // Expose handleSubmit to parent component (for timer expiry)
     useImperativeHandle(ref, () => ({
         handleSubmit,
     }));
 
-    useEffect(() => {
-        if (data.score !== 0) {
-            post('/submit-test', data);
-            onComplete(); // Ensuring it's called only after score updates
-        }
-    }, [data.score]);
+    // Check if all questions are answered
+    const allQuestionsAnswered = flatQuestions.every(q => data.answers[q.id]);
+    
+    // Get progress percentage
+    const answeredCount = Object.keys(data.answers).length;
+    const progressPercentage = (answeredCount / flatQuestions.length) * 100;
 
     const propsNavigator = {
         props: data,
@@ -132,83 +103,174 @@ const ListeningQuestion = forwardRef(function ReadingQuestion({ onComplete, sect
         flagged: flagged,
     };
 
+    // Loading state or error handling
+    if (!currentQuestion || !currentListening) {
+        return (
+            <div className="flex w-full items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <h2 className="text-xl font-semibold text-gray-600">Loading questions...</h2>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex w-full items-start justify-between gap-8">
             <NavigatorBox propsNav={propsNavigator} />
 
-            {/* Readings box*/}
-
-            <div className="max-h-[85vh] w-100 flex-1 space-y-4 overflow-auto rounded-sm bg-white p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">No. {currentListening.title}</h2>
+            {/* Audio/Passage Section */}
+            <div className="max-h-[85vh] w-100 flex-1 space-y-4 overflow-auto rounded-lg bg-white p-6 shadow-lg border border-gray-200">
+                <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+                    <h2 className="text-xl font-semibold text-gray-800">{currentListening.title}</h2>
+                    <div className="text-sm text-gray-500">
+                        Question {data.currentQuestionIndex + 1} of {flatQuestions.length}
+                    </div>
                 </div>
 
-                {/* <p className="text-sm break-words text-gray-700 select-none">{currentListening.passage}</p> */}
-                <p className="text-sm text-red-600">
-                    <span>* </span>You can only play 1 time
-                </p>
-                <TextToSpeech text={currentListening.passage} />
+                {/* Progress bar */}
+                <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                    <div 
+                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${progressPercentage}%` }}
+                    />
+                </div>
+
+                {/* Important notice */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2">
+                        <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <p className="text-sm text-yellow-800 font-medium">
+                            Important: You can only play the audio once. Listen carefully!
+                        </p>
+                    </div>
+                </div>
+
+                {/* Audio Player */}
+                <div className="bg-gray-50 rounded-lg p-6">
+                    <TextToSpeech text={(currentListening as any).audioScript} />
+                </div>
             </div>
 
+            {/* Questions Section */}
             <div className="max-h-[100vh] w-1/3">
-                <div className="max-h-[80vh] flex-1 space-y-4 overflow-auto rounded-t-sm bg-white p-4 shadow-sm">
-                    <div key={currentQuestion.id} className="flex flex-col gap-2">
-                        {/* QUESTIONS */}
-                        <div className='gap-2" flex justify-between'>
-                            <p className="text-sm leading-relaxed text-gray-700">
-                                {currentQuestion.id}. {currentQuestion.question}
+                <div className="max-h-[80vh] flex-1 space-y-4 overflow-auto rounded-t-lg bg-white p-6 shadow-lg border border-gray-200">
+                    <div key={currentQuestion.id} className="flex flex-col gap-4">
+                        {/* Question Header */}
+                        <div className="flex justify-between items-start gap-4">
+                            <p className="text-sm leading-relaxed text-gray-700 flex-1">
+                                <span className="font-semibold text-blue-600">Q{currentQuestion.id}.</span> {currentQuestion.question}
                             </p>
-
-                            <Button variant={'outline'} onClick={() => toggleFlag(currentQuestion.id)}>
+                            <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => toggleFlag(currentQuestion.id)}
+                                className={`flex-shrink-0 ${flagged[currentQuestion.id] ? 'border-red-500 bg-red-50' : ''}`}
+                            >
                                 {flagged[currentQuestion.id] ? (
-                                    <FlagOff className="h-5 w-5 text-red-600" />
+                                    <FlagOff className="h-4 w-4 text-red-600" />
                                 ) : (
-                                    <Flag className="'h-5 w-5 text-red-600" />
+                                    <Flag className="h-4 w-4 text-gray-500" />
                                 )}
                             </Button>
                         </div>
-                        {/* Answer */}
-                        <div className="space-y-2">
+                        
+                        {/* Answer Choices */}
+                        <div className="space-y-3">
                             {currentQuestion.choices.map((choice: string, index: number) => (
                                 <label
                                     key={index}
-                                    className={`block cursor-pointer rounded-md border px-4 py-2 ${
+                                    className={`block cursor-pointer rounded-lg border-2 px-4 py-3 transition-all duration-200 hover:shadow-md ${
                                         data.answers[currentQuestion.id] === choice
-                                            ? 'border-blue-500 bg-blue-50'
-                                            : 'border-gray-300 hover:border-blue-400'
+                                            ? 'border-blue-500 bg-blue-50 shadow-sm'
+                                            : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
                                     }`}
                                 >
-                                    <input
-                                        type="radio"
-                                        name={`question-${currentQuestion.id}`}
-                                        value={choice}
-                                        checked={data.answers[currentQuestion.id] === choice}
-                                        onChange={() =>
-                                            setData('answers', {
-                                                ...data.answers,
-                                                [currentQuestion.id]: choice,
-                                            })
-                                        }
-                                        className="mr-2"
-                                    />
-                                    <span className="font-medium">{String.fromCharCode(65 + index)}.</span> {choice}
+                                    <div className="flex items-center space-x-3">
+                                        <input
+                                            type="radio"
+                                            name={`question-${currentQuestion.id}`}
+                                            value={choice}
+                                            checked={data.answers[currentQuestion.id] === choice}
+                                            onChange={() =>
+                                                setData('answers', {
+                                                    ...data.answers,
+                                                    [currentQuestion.id]: choice,
+                                                })
+                                            }
+                                            className="w-4 h-4 text-blue-600"
+                                        />
+                                        <span className="font-semibold text-blue-600 min-w-[20px]">
+                                            {String.fromCharCode(65 + index)}.
+                                        </span>
+                                        <span className="text-gray-700">{choice}</span>
+                                    </div>
                                 </label>
                             ))}
                         </div>
                     </div>
                 </div>
-                <div className="rounded-b-sm bg-white shadow-sm">
-                    <div className="mx-2 mb-2 flex justify-between py-2">
-                        <Button size="sm" onClick={handlePrev} disabled={data.currentQuestionIndex === 0}>
-                            Prev
-                        </Button>
-                        <Button size="sm" onClick={handleNext}>
-                            {data.currentQuestionIndex === flatQuestions.length - 1 ? 'Next Section' : 'Next'}
-                        </Button>
+                
+                {/* Navigation Footer */}
+                <div className="rounded-b-lg bg-white shadow-lg border border-t-0 border-gray-200">
+                    <div className="p-4">
+                        <div className="flex justify-between items-center">
+                            <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={handlePrev} 
+                                disabled={data.currentQuestionIndex === 0}
+                                className="px-6"
+                            >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                                Previous
+                            </Button>
+                            
+                            <div className="text-xs text-gray-500">
+                                {answeredCount} of {flatQuestions.length} answered
+                            </div>
+                            
+                            <Button 
+                                size="sm" 
+                                onClick={handleNext}
+                                disabled={isSubmitting}
+                                className={`px-6 ${data.currentQuestionIndex === flatQuestions.length - 1 ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Submitting...
+                                    </>
+                                ) : (
+                                    <>
+                                        {data.currentQuestionIndex === flatQuestions.length - 1 ? 'Finish Section' : 'Next'}
+                                        {data.currentQuestionIndex < flatQuestions.length - 1 && (
+                                            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        )}
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                        
+                        {/* Show completion status */}
+                        {allQuestionsAnswered && (
+                            <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-center">
+                                <p className="text-sm text-green-700">✓ All questions answered! Ready to submit.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
         </div>
     );
 });
+
 export default ListeningQuestion;

@@ -90,6 +90,23 @@ class TestUnitController extends Controller
         }
     }
 
+    public function resetTest()
+    {
+        // Clear all test-related session data
+        session()->forget([
+            'ReadingScore',
+            'ListeningScore', 
+            'SpeakingScore',
+            'WritingScore',
+            'AnsweredCountReading',
+            'AnsweredCountListening',
+            'AnsweredCountSpeaking',
+            'AnsweredCountWriting'
+        ]);
+
+        return response()->json(['message' => 'Test reset successfully']);
+    }
+
     public function scoreboard()
     {
         $readingScore = session('ReadingScore', 0);
@@ -107,370 +124,335 @@ class TestUnitController extends Controller
         ]);
     }
 
-    private function getReadingQuestions()
+        private function getReadingQuestions()
     {
         return [
             [
                 'id' => 1,
-                'title' => 'The Role of Pollinators in Ecosystems',
-                'passage' => 'Pollinators are crucial for the reproduction of many plants, which in turn supports biodiversity and food production. Bees, butterflies, bats, and birds are some of the most common pollinators. Their decline has raised concerns about the impacts on natural ecosystems and agriculture. Various factors, including habitat loss, climate change, and pesticide use, have contributed to the decrease in pollinator populations. Conservation efforts are underway to protect these vital species and ensure the stability of ecosystems.',
+                'title' => 'The Impact of Urbanization on Biodiversity',
+                'passage' => 'Urbanization, the process by which rural areas become increasingly urbanized, has become one of the most significant global trends of the 21st century. As cities expand and populations concentrate in urban areas, the transformation of natural landscapes into built environments has profound consequences for biodiversity. The relationship between urban development and ecological systems is complex, involving both direct and indirect effects on species composition, habitat availability, and ecosystem functioning.
+
+Urban environments present unique challenges for wildlife. The fragmentation of natural habitats creates isolated patches of green space, making it difficult for species to move between areas and maintain viable populations. Road networks, buildings, and other infrastructure act as barriers to animal movement, often leading to population isolation and reduced genetic diversity. Additionally, urban areas typically experience altered microclimates, with higher temperatures due to the heat island effect, changed precipitation patterns, and increased air and noise pollution.
+
+However, urbanization does not uniformly result in biodiversity loss. Some species have adapted remarkably well to urban environments, taking advantage of new ecological niches. Urban-adapted species often exhibit behavioral flexibility, dietary generalism, and tolerance to human disturbance. Birds such as house sparrows and pigeons, as well as mammals like raccoons and urban coyotes, have successfully colonized cities worldwide. These species demonstrate that urban environments can support wildlife when appropriate conditions are present.
+
+Conservation biologists increasingly recognize that urban areas must be incorporated into broader conservation strategies. Green infrastructure, including parks, green roofs, and wildlife corridors, can provide habitat connectivity and support urban biodiversity. The design of cities can significantly influence their ecological impact, with sustainable urban planning offering opportunities to minimize negative effects on biodiversity while creating livable environments for both humans and wildlife.',
                 'questions' => [
                     [
                         'id' => 1,
-                        'question' => 'What does the word "crucial" in the first sentence most closely mean?',
-                        'choices' => [' Unnecessary', 'Essential', 'Uncertain', 'Optional'],
-                        'correctAnswer' => 'Essential'
+                        'question' => 'According to the passage, what is one of the main challenges that urbanization poses to wildlife?',
+                        'choices' => [
+                            'Increased competition for food resources',
+                            'Fragmentation of natural habitats into isolated patches',
+                            'Excessive exposure to sunlight in urban areas',
+                            'Lack of suitable nesting materials in cities'
+                        ],
+                        'correctAnswer' => 'Fragmentation of natural habitats into isolated patches'
                     ],
                     [
                         'id' => 2,
-                        'question' => 'According to the passage, which of the following is NOT mentioned as a factor contributing to the decline in pollinator populations?',
-                        'choices' => ['Habitat loss', 'Climate change', 'Pesticide use', 'Overpopulation'],
-                        'correctAnswer' => 'Overpopulation'
+                        'question' => 'The word "viable" in paragraph 2 is closest in meaning to',
+                        'choices' => [
+                            'sustainable',
+                            'diverse',
+                            'large',
+                            'productive'
+                        ],
+                        'correctAnswer' => 'sustainable'
                     ],
                     [
                         'id' => 3,
-                        'question' => 'It can be inferred from the passage that pollinators are important because . . .',
-                        'choices' => ['They help increase the population of insects.', 'They play a role in plant reproduction which supports biodiversity.', 'They are a source of food for birds.', 'They are easy to conserve.'],
-                        'correctAnswer' => 'They play a role in plant reproduction which supports biodiversity.'
+                        'question' => 'Which of the following can be inferred from paragraph 3 about urban-adapted species?',
+                        'choices' => [
+                            'They require specialized diets to survive in cities',
+                            'They are more aggressive than their rural counterparts',
+                            'They possess characteristics that help them thrive in human-dominated environments',
+                            'They are primarily nocturnal to avoid human contact'
+                        ],
+                        'correctAnswer' => 'They possess characteristics that help them thrive in human-dominated environments'
                     ],
                     [
                         'id' => 4,
-                        'question' => 'The primary purpose of the passage is to:',
-                        'choices' => ['Explain the decline of pollinator populations.', 'Describe various types of pollinators.', 'Argue against the use of pesticides.', ' Highlight the importance of pollinators in ecosystems.'],
-                        'correctAnswer' => 'Highlight the importance of pollinators in ecosystems.'
+                        'question' => 'What does the author suggest about the role of green infrastructure in urban environments?',
+                        'choices' => [
+                            'It is too expensive to implement in most cities',
+                            'It can help maintain habitat connectivity for urban wildlife',
+                            'It should replace all traditional urban planning methods',
+                            'It is only effective in suburban areas'
+                        ],
+                        'correctAnswer' => 'It can help maintain habitat connectivity for urban wildlife'
                     ],
                     [
                         'id' => 5,
-                        'question' => 'According to the passage, which pollinator is NOT mentioned?',
-                        'choices' => ['Bees', 'Butterflies', 'Ants', 'Bats'],
-                        'correctAnswer' => 'Ants'
+                        'question' => 'The primary purpose of this passage is to',
+                        'choices' => [
+                            'argue against further urban development',
+                            'describe specific urban wildlife conservation programs',
+                            'examine the complex relationship between urbanization and biodiversity',
+                            'promote the economic benefits of green infrastructure'
+                        ],
+                        'correctAnswer' => 'examine the complex relationship between urbanization and biodiversity'
                     ],
                     [
                         'id' => 6,
-                        'question' => 'The word "their" in the sentence "Their decline has raised concerns about the impacts on natural ecosystems and agriculture." refers to . . . ',
-                        'choices' => ['Plants', 'Pollinators', 'Concerns', 'Ecosystems'],
-                        'correctAnswer' => 'Pollinators'
-                    ],
+                        'question' => 'According to the passage, all of the following are effects of urbanization on wildlife EXCEPT:',
+                        'choices' => [
+                            'altered microclimates in urban areas',
+                            'barriers to animal movement created by infrastructure',
+                            'increased genetic diversity within urban populations',
+                            'changes in precipitation patterns'
+                        ],
+                        'correctAnswer' => 'increased genetic diversity within urban populations'
+                    ]
                 ]
             ],
             [
                 'id' => 2,
-                'title' => 'The Role of the Printing Press in Spreading Knowledge',
-                'passage' => 'The invention of the printing press in the mid-15th century by Johannes Gutenberg marked a significant milestone in the history of human communication. Before the advent of the printing press, books were manually copied and were primarily accessible to the wealthy elite and religious institutions. Gutenberg’s invention revolutionized the production of books, making them more accessible and affordable to the broader public.
-                
-                The printing press significantly sped up the process of book production, reducing the cost and effort involved in creating books. This allowed for the rapid dissemination of knowledge and ideas, which played a pivotal role in major cultural shifts such as the Renaissance and the Reformation. It enabled scholars and thinkers to share their discoveries and ideas across Europe more quickly than ever before, fostering an environment of intellectual growth and debate
-                Moreover, the standardization of texts contributed to the development of national languages and literacy. As books became cheaper and more widely available, reading became a more common pastime, and literacy rates gradually increased. The accessibility of printed materials also helped in spreading literacy and educational opportunities to the masses, which had long-term impacts on society’s development.',
+                'title' => 'The Development of Jazz Music in America',
+                'passage' => 'Jazz, one of America\'s most distinctive cultural contributions to world music, emerged in the early 20th century from the cultural melting pot of New Orleans. This innovative musical form represented a synthesis of African American musical traditions, including blues and spirituals, with European harmonic structures and instrumentation. The unique social and cultural environment of New Orleans, with its diverse population and relatively relaxed racial boundaries, provided fertile ground for this musical fusion.
+
+The early pioneers of jazz, including Buddy Bolden, Jelly Roll Morton, and later Louis Armstrong, developed techniques that would become hallmarks of the genre. Improvisation, the spontaneous creation of melody and rhythm during performance, became jazz\'s most defining characteristic. This emphasis on individual expression within a collective musical framework reflected broader American values of individualism and democratic participation.
+
+As jazz spread from New Orleans to other major cities, particularly Chicago and New York, it underwent significant evolution. The 1920s, often called the Jazz Age, saw the music gain widespread popularity and commercial success. Big bands led by Duke Ellington and Count Basie brought jazz to mainstream audiences, while smaller ensembles continued to push the boundaries of improvisation and harmonic complexity.
+
+The influence of jazz extended far beyond music itself. It played a crucial role in breaking down racial barriers, as integrated audiences came together to appreciate this new art form. Jazz clubs became spaces where racial mixing was more accepted than in other social contexts. Furthermore, jazz influenced literature, visual arts, and dance, contributing to a broader cultural renaissance that challenged traditional American social norms and aesthetic conventions.',
                 'questions' => [
                     [
                         'id' => 7,
-                        'question' => 'What was a direct result of the invention of the printing press?',
-                        'choices' => ['Increase in manual copying of books', 'Decrease in the cost of book production', 'Decrease in literacy rates', 'Decrease in the dissemination of knowledge'],
-                        'correctAnswer' => 'Decrease in the cost of book production'
+                        'question' => 'According to the passage, what made New Orleans particularly suitable for the development of jazz?',
+                        'choices' => [
+                            'Its location near major European cultural centers',
+                            'Its diverse population and relaxed racial boundaries',
+                            'Its large number of professional musicians',
+                            'Its economic prosperity during the early 1900s'
+                        ],
+                        'correctAnswer' => 'Its diverse population and relaxed racial boundaries'
                     ],
                     [
                         'id' => 8,
-                        'question' => 'Which cultural shifts were influenced by the advent of the printing press?',
-                        'choices' => [' Industrial Revolution', 'Renaissance and Reformation', 'The establishment of religious institutions', ' The decline of national languages'],
-                        'correctAnswer' => 'Renaissance and Reformation'
+                        'question' => 'The word "synthesis" in paragraph 1 is closest in meaning to',
+                        'choices' => [
+                            'analysis',
+                            'combination',
+                            'replacement',
+                            'criticism'
+                        ],
+                        'correctAnswer' => 'combination'
                     ],
                     [
                         'id' => 9,
-                        'question' => 'How did the printing press contribute to the development of national languages?',
-                        'choices' => ['By increasing the complexity of texts', ' By reducing the accessibility of books', 'By standardizing texts', ' By limiting educational opportunities'],
-                        'correctAnswer' => 'By standardizing texts'
+                        'question' => 'What does the author suggest about the relationship between jazz improvisation and American values?',
+                        'choices' => [
+                            'Jazz improvisation contradicted traditional American musical preferences',
+                            'The emphasis on individual expression reflected American individualism',
+                            'Improvisation was borrowed from European classical traditions',
+                            'Jazz musicians rejected all forms of collective musical participation'
+                        ],
+                        'correctAnswer' => 'The emphasis on individual expression reflected American individualism'
                     ],
-                ]
-            ],
-            [
-                'id' => 3,
-                'title' => 'The Impact of the Steam Engine on Industrial Development',
-                'passage' => 'The steam engine, developed in the 18th century, became a fundamental driving force behind the Industrial Revolution. Invented by James Watt, the steam engine facilitated major advancements in manufacturing, transportation, and communication, transforming societies globally. Before its invention, most machinery was powered by human or animal labor, windmills, or watermills.
-                
-                The introduction of the steam engine enabled factories to increase production capabilities and efficiency as machines could now operate continuously. This led to significant increases in the volume and variety of products available, reducing costs and making goods more accessible to the general public. Furthermore, the steam engine revolutionized transportation with the development of steamships and railways, which dramatically reduced the time it took to transport goods and people over long distances.
-                
-                Economically, the steam engine played a pivotal role in shifting the balance of power in favor of industrialized nations, which could produce goods more efficiently and at a lower cost. Socially, it contributed to the rise of urban centers as people moved from rural areas to cities in search of work in new factories, reshaping the demographic landscape of many countries.',
-                'questions' => [
                     [
                         'id' => 10,
-                        'question' => 'What was a primary effect of the steam engine on factories?',
-                        'choices' => ['IDecreased production capabilities', 'Increased dependency on animal labor', 'Enhanced production efficiency', 'Reduction in the variety of products'],
-                        'correctAnswer' => 'Enhanced production efficiency'
-                    ],
-                    [
-                        'id' => 11,
-                        'question' => 'How did the steam engine affect transportation?',
-                        'choices' => ['It increased the time required to transport goods', 'It led to the development of bicycles', 'It enabled faster movement of goods and people', ' It had no significant impact on transportation'],
-                        'correctAnswer' => 'It enabled faster movement of goods and people'
-                    ],
-                    [
-                        'id' => 12,
-                        'question' => 'What social change did the steam engine encourage?',
-                        'choices' => ['Migration from urban to rural areas', 'Decrease in urban populations', 'Growth of urban centers', 'Decline in factory jobs'],
-                        'correctAnswer' => 'Growth of urban centers'
-                    ],
+                        'question' => 'It can be inferred from the passage that jazz clubs were significant because they',
+                        'choices' => [
+                            'provided the only venues for live music performance',
+                            'were exclusively patronized by wealthy audiences',
+                            'served as spaces where racial integration was more accepted',
+                            'featured only traditional American musical forms'
+                        ],
+                        'correctAnswer' => 'served as spaces where racial integration was more accepted'
+                    ]
                 ]
-            ],
-            [
-                'id' => 4,
-                'title' => 'The Great Barrier Reef',
-                'passage' => 'The Great Barrier Reef, located off the northeastern coast of Australia, is the world\'s largest coral reef system, stretching over 2,300 kilometers and encompassing approximately 900 islands and 2,900 individual reefs. This natural wonder is renowned for its extraordinary biodiversity, housing thousands of marine species, including fish, corals, mollusks, and marine mammals.
-                
-                The reef\'s formation began around 20 million years ago, and it has since evolved into one of the most complex and diverse ecosystems on the planet. The coral polyps, tiny animals that build the reef, create intricate structures that provide habitats and food for a wide range of marine life. However, the Great Barrier Reef faces numerous threats, including climate change, pollution, overfishing, and coastal development. Rising sea temperatures and ocean acidification, both consequences of climate change, have led to widespread coral bleaching events, severely impacting the health of the reef.
-                
-                Efforts to protect and preserve the Great Barrier Reef are ongoing, involving both local and international initiatives. These efforts focus on reducing carbon emissions, regulating fishing practices, and implementing marine protected areas to safeguard the reef\'s fragile ecosystem. Despite these efforts, the future of the Great Barrier Reef remains uncertain, as the impacts of climate change continue to pose significant challenges.',
-                'questions' => [
-                    [
-                        'id' => 13,
-                        'question' => 'Which of the following is a primary threat to the Great Barrier Reef mentioned in the passage?',
-                        'choices' => ['Earthquakes', 'Volcanic eruptions', 'Climate change', 'Invasive species'],
-                        'correctAnswer' => 'Climate change'
-                    ],
-                    [
-                        'id' => 14,
-                        'question' => 'What is the primary function of coral polyps in the Great Barrier Reef ecosystem?',
-                        'choices' => ['They regulate the water temperature', 'They create habitats and food for marine life', 'They attract tourists to the reef', 'They prevent coastal erosion'],
-                        'correctAnswer' => 'They create habitats and food for marine life'
-                    ],
-                    [
-                        'id' => 15,
-                        'question' => 'Which of the following measures is NOT mentioned as part of the efforts to protect the Great Barrier Reef?',
-                        'choices' => ['Reducing carbon emissions', 'Implementing marine protected areas', 'Regulating fishing practices', 'Building artificial reefs'],
-                        'correctAnswer' => 'Building artificial reefs'
-                    ],
-                ]
-            ],
-            [
-                'id' => 5,
-                'title' => 'The Silk Road',
-                'passage' => 'The Silk Road was an ancient network of trade routes that connected the East and West, facilitating the exchange of goods, culture, and ideas between different civilizations. This extensive network, which began around the 2nd century BCE, spanned thousands of miles, linking China with the Mediterranean region. It played a crucial role in the development of the civilizations it connected, including those in China, India, Persia, Arabia, and the Roman Empire.The Silk Road derived its name from the lucrative trade in silk, a highly prized commodity that was produced primarily in China. However, many other goods were traded along these routes, such as spices, precious metals, gemstones, and textiles. In addition to material goods, the Silk Road also facilitated the spread of knowledge, religion, and technology. For example, Buddhism spread from India to China and other parts of Asia along these trade routes.Despite its significant contributions to cultural and economic exchanges, the Silk Road faced numerous challenges, including harsh desert environments, rugged mountain terrains, and the threat of bandit attacks. The rise of maritime trade routes in the 15th century eventually led to the decline of the overland Silk Road, as sea routes offered faster and safer alternatives for transporting goods.',
-                'questions' => [
-                    [
-                        'id' => 16,
-                        'question' => 'What was the primary commodity that gave the Silk Road its name?',
-                        'choices' => ['Spices', 'Silk', 'Precious metals', 'Textiles'],
-                        'correctAnswer' => 'Silk'
-                    ],
-                    [
-                        'id' => 17,
-                        'question' => 'Which of the following was NOT mentioned as a challenge faced by travelers on the Silk Road?',
-                        'choices' => ['Harsh desert environments', 'Rugged mountain terrains', 'Threat of bandit attacks', 'Competition from maritime trade routes'],
-                        'correctAnswer' => 'Competition from maritime trade routes'
-                    ],
-                    [
-                        'id' => 18,
-                        'question' => 'Which statement best describes the impact of the Silk Road on the spread of religion?',
-                        'choices' => [
-                            'The Silk Road only facilitated the exchange of material goods',
-                            'Buddhism spread from India to China and other parts of Asia along the Silk Road',
-                            'The Silk Road hindered the spread of religious ideas',
-                            'Christianity was the only religion that spread along the Silk Road'
-                        ],
-                        'correctAnswer' => 'Buddhism spread from India to China and other parts of Asia along the Silk Road'
-                    ],
-                ]
-            ],
-            [
-                'id' => 6,
-                'title' => 'The Rise and Fall of the Maya Civilization',
-                'passage' => 'The Maya Civilization thrived in Mesoamerica from approximately 2000 B.C. to the 16th century A.D., reaching its peak during the Classic Period (250–900 A.D.). This civilization is renowned for its advancements in mathematics, astronomy, and architecture, as well as its complex social and political structures.
-                The Maya built impressive city-states, each ruled by a king, known as an ajaw. These cities featured grand pyramids, palaces, and ceremonial platforms, often intricately decorated with carvings and inscriptions. Notable Maya cities included Tikal, Palenque, and Copán. The Maya developed a sophisticated calendar system and were among the first to use the concept of zero in their mathematical calculations.
-                Trade was a vital component of Maya society, with extensive networks connecting different city-states and regions. The Maya traded goods such as jade, obsidian, cacao, and textiles. Evidence of Maya trade connections has been found as far away as Central Mexico and Honduras, highlighting the civilization’s economic reach.
-                Religion played a central role in Maya life, with a pantheon of gods and rituals that were intricately tied to their calendar and astronomical observations. The Maya believed that the actions of their rulers were crucial for maintaining the balance of the universe, leading to elaborate ceremonies and bloodletting rituals.
-                Despite their achievements, the Maya civilization began to decline during the Late Classic Period (800–900 A.D.). Several factors have been proposed to explain this decline, including environmental degradation, overpopulation, warfare, and prolonged droughts. The collapse was not uniform across the region; some city-states were abandoned, while others persisted and evolved.
-                The arrival of the Spanish in the 16th century marked the final blow to the remaining Maya polities. The Spanish conquest, coupled with diseases brought by Europeans, decimated the indigenous population and led to the eventual fall of the Maya civilization.
-
-                One of the enduring mysteries of the Maya is their writing system. The Maya developed a complex hieroglyphic script, which has been partially deciphered. This script provides valuable insights into their history, culture, and daily life, yet many inscriptions remain untranslated, leaving aspects of their civilization shrouded in mystery.',
-                'questions' => [
-                    [
-                        'id' => 19,
-                        'question' => 'What was a major factor in the prosperity of the Maya Civilization?',
-                        'choices' => [
-                            'Military conquests in surrounding regions',
-                            'Extensive trade networks with other regions',
-                            'Isolation from external influences',
-                            'Reliance on a single agricultural product'
-                        ],
-                        'correctAnswer' => 'Extensive trade networks with other regions'
-                    ],
-                    [
-                        'id' => 20,
-                        'question' => 'Which statement is true about the Maya Civilization based on the passage?',
-                        'choices' => [
-                            'The civilization was primarily militaristic with frequent warfare',
-                            'The Maya did not have a writing system',
-                            'The cities featured grand pyramids and ceremonial platforms',
-                            'Maya rulers had no role in religious practices'
-                        ],
-                        'correctAnswer' => 'The cities featured grand pyramids and ceremonial platforms'
-                    ],
-                    [
-                        'id' => 21,
-                        'question' => 'What likely contributed to the decline of the Maya Civilization?',
-                        'choices' => [
-                            'Complete isolation from trade networks',
-                            'Environmental degradation and prolonged droughts',
-                            'Overreliance on a single crop',
-                            'A sudden epidemic that wiped out the population'
-                        ],
-                        'correctAnswer' => 'Environmental degradation and prolonged droughts'
-                    ],
-                ]
-            ],
-            [
-                'id' => 7,
-                'title' => 'The Decline of the Roman Empire',
-                'passage' => "The Roman Empire, one of the most powerful and influential civilizations in history, experienced a dramatic rise and fall. Founded in 27 B.C., the Empire reached its peak during the 2nd century A.D., encompassing vast territories across Europe, North Africa, and the Middle East. The Roman Empire is renowned for its advanced engineering, extensive road networks, legal systems, and monumental architecture.
-
-                One of the most iconic features of the Roman Empire was its extensive network of roads and aqueducts, which facilitated trade, military movements, and communication across the vast territories. The Romans built impressive structures, including the Colosseum, aqueducts like the Pont du Gard, and the extensive road networks that connected the Empire's cities.
-
-                The Roman economy thrived on agriculture, trade, and a well-organized taxation system. Rome traded extensively with neighboring regions, importing goods such as silk from China, spices from India, and grain from Egypt. The use of coinage facilitated commerce and helped integrate the diverse regions of the Empire.
-
-                Despite its achievements, the Roman Empire began to decline in the 3rd century A.D. Several factors contributed to this decline, including political instability, economic troubles, military defeats, and external pressures from invading tribes. The Empire was divided into the Eastern and Western Roman Empires in 285 A.D., but this division only temporarily stabilized the situation.
-
-                The Western Roman Empire faced numerous challenges, including invasions by Germanic tribes such as the Visigoths and Vandals. The sack of Rome by the Visigoths in 410 A.D. and the eventual deposition of the last Roman emperor, Romulus Augustulus, in 476 A.D. marked the end of the Western Roman Empire. The Eastern Roman Empire, known as the Byzantine Empire, continued to thrive for several more centuries until the fall of Constantinople in 1453.",
-                'questions' => [
-                    [
-                        'id' => 22,
-                        'question' => 'What was a major factor in the economic prosperity of the Roman Empire?',
-                        'choices' => [
-                            'Isolation from external influences',
-                            'Extensive trade networks with neighboring regions',
-                            'Reliance on a single agricultural product',
-                            'Continuous military conquests'
-                        ],
-                        'correctAnswer' => 'Extensive trade networks with neighboring regions'
-                    ],
-                    [
-                        'id' => 23,
-                        'question' => 'Which statement is true about the Roman Empire based on the passage?',
-                        'choices' => [
-                            'The Roman Empire was primarily isolated with minimal external trade',
-                            'The Roman Empire did not have a well-organized taxation system',
-                            'The Roman Empire built an extensive network of roads and aqueducts',
-                            'The Roman Empire\'s decline began in the 1st century A.D.'
-                        ],
-                        'correctAnswer' => 'The Roman Empire built an extensive network of roads and aqueducts'
-                    ],
-                    [
-                        'id' => 24,
-                        'question' => 'What are possible reasons for the decline of the Roman Empire?',
-                        'choices' => [
-                            'Complete isolation from neighboring regions',
-                            'Political instability and external invasions',
-                            'Continuous economic prosperity and stability',
-                            'Invasion by European settlers'
-                        ],
-                        'correctAnswer' => 'Political instability and external invasions'
-                    ],
-                ]
-            ],
-            [
-                'id' => 8,
-                'title' => 'The Disappearance of the Dodo',
-                'passage' => "The dodo, a flightless bird native to the island of Mauritius in the Indian Ocean, has become an enduring symbol of extinction. First encountered by European sailors in the late 16th century, the dodo thrived in the dense forests of Mauritius. Unfortunately, within less than a century, the dodo had disappeared, largely due to human activity. The reasons behind the dodo's extinction are multifaceted, involving habitat destruction, introduced species, and direct human exploitation.
-
-                When the Portuguese and Dutch sailors arrived on Mauritius, they found the dodo to be an easy prey due to its lack of fear of humans and inability to fly. The dodo, which stood about one meter tall and weighed around 20 kilograms, provided a convenient source of fresh meat for the sailors. However, hunting was not the sole cause of the dodo's extinction.
-
-                The introduction of non-native animals by the settlers had a devastating impact on the dodo population. Pigs, rats, and monkeys brought to the island preyed on dodo eggs and competed for food resources. The dodo, having evolved in an isolated environment without natural predators, was ill-equipped to deal with these new threats. Additionally, the settlers cleared large areas of forest for agriculture, destroying the dodo's natural habitat and further reducing its chances of survival.
-
-                Another significant factor contributing to the dodo's extinction was the bird's reproductive biology. Dodos laid only one egg at a time, making their populations particularly vulnerable to any disturbances. With the high predation rates on their eggs and chicks by the introduced animals, dodo numbers declined rapidly.
-
-                Recent studies have also explored the possibility that diseases introduced by the settlers and their animals could have contributed to the decline of the dodo. However, direct evidence supporting this theory is limited. The rapid and multifaceted nature of the dodo's extinction makes it a compelling case study for understanding the complex interactions between human activity and biodiversity loss.
-
-                The extinction of the dodo serves as a stark reminder of the fragility of island ecosystems. With no natural predators and a limited geographical range, the dodo was particularly susceptible to the changes brought about by human colonization. Today, the story of the dodo continues to be a poignant symbol in conservation efforts, emphasizing the importance of protecting vulnerable species and their habitats.",
-                'questions' => [
-                    [
-                        'id' => 25,
-                        'question' => 'What was one major factor contributing to the extinction of the dodo according to the passage?',
-                        'choices' => [
-                            'Competition with other native bird species',
-                            'Habitat destruction due to human colonization',
-                            'Evolutionary changes reducing the dodo\'s size',
-                            'Climate changes altering the island\'s ecosystem'
-                        ],
-                        'correctAnswer' => 'Habitat destruction due to human colonization'
-                    ],
-                    [
-                        'id' => 26,
-                        'question' => 'How did the introduction of non-native animals affect the dodo population?',
-                        'choices' => [
-                            'It provided new food sources for the dodo',
-                            'It helped the dodo to thrive in a new environment',
-                            'It led to increased predation on dodo eggs and competition for food',
-                            'It caused the dodo to migrate to other islands'
-                        ],
-                        'correctAnswer' => 'It led to increased predation on dodo eggs and competition for food'
-                    ],
-                    [
-                        'id' => 27,
-                        'question' => 'Why might human activity have contributed to the dodo\'s extinction?',
-                        'choices' => [
-                            'Humans built cities that replaced dodo habitats',
-                            'Humans introduced diseases that affected the dodo',
-                            'Humans hunted the dodo for food and cleared forests for agriculture',
-                            'Humans prevented the dodo from reaching its nesting sites'
-                        ],
-                        'correctAnswer' => 'Humans hunted the dodo for food and cleared forests for agriculture'
-                    ],
-                    [
-                        'id' => 28,
-                        'question' => 'What evidence suggests that the dodo\'s extinction was a result of multiple factors?',
-                        'choices' => [
-                            'Fossils of dodos found in mainland Asia',
-                            'Remains of dodo eggs in caves on Mauritius',
-                            'Historical records describing the impact of hunting, habitat destruction, and introduced species',
-                            'Genetic studies showing a sudden decline in the dodo population'
-                        ],
-                        'correctAnswer' => 'Historical records describing the impact of hunting, habitat destruction, and introduced species'
-                    ],
-                ]
-            ],
+            ]
         ];
     }
+
+
     private function getListeningQuestions()
     {
         return [
             [
                 'id' => 1,
-                'title' => 'Reading 1',
-                'passage' => 'Isi bacaan...',
+                'title' => 'Conversation: Student and Academic Advisor',
+                'type' => 'conversation',
+                'audioScript' => 'Student: Hi, Professor Johnson. Thanks for meeting with me. I\'m having some trouble deciding on my major.
+
+Advisor: Of course, that\'s what I\'m here for. What\'s your current situation?
+
+Student: Well, I\'m a sophomore, and I\'ve been taking general education courses, but I need to declare a major soon. I\'m torn between psychology and business administration.
+
+Advisor: Those are quite different fields. What draws you to each one?
+
+Student: I\'ve always been interested in understanding how people think and behave, which is why psychology appeals to me. But I\'m also practical about my future - I want to make sure I can find a good job after graduation, and business seems more secure financially.
+
+Advisor: That\'s a common concern. Have you considered that psychology can lead to many career paths? You could work in human resources, marketing research, counseling, or even pursue graduate studies.
+
+Student: I hadn\'t thought about marketing research. How does psychology relate to that?
+
+Advisor: Companies need to understand consumer behavior to develop effective marketing strategies. Psychology majors often work for advertising agencies or corporate marketing departments. The starting salaries can be quite competitive.
+
+Student: That sounds interesting. But what about the coursework? I\'ve heard psychology requires a lot of statistics and research methods.
+
+Advisor: That\'s true, but those skills are valuable in any field. Research and analytical skills are highly sought after by employers. Plus, if you find you enjoy research, you could consider graduate school.',
                 'questions' => [
-                    ['id' => 1, 'question' => 'Apa tujuan artikel?', 'choices' => ['A', 'B', 'C', 'D'], 'correctAnswer' => 'A'],
-                    // ...
+                    [
+                        'id' => 1,
+                        'question' => 'What is the student\'s main concern about choosing a major?',
+                        'choices' => [
+                            'She is not interested in any particular field',
+                            'She wants to balance personal interest with career prospects',
+                            'She does not have enough time to decide',
+                            'She is not performing well in her current courses'
+                        ],
+                        'correctAnswer' => 'She wants to balance personal interest with career prospects'
+                    ],
+                    [
+                        'id' => 2,
+                        'question' => 'According to the advisor, what career path combines psychology with business?',
+                        'choices' => [
+                            'Human resources',
+                            'Marketing research',
+                            'Corporate consulting',
+                            'Graduate school teaching'
+                        ],
+                        'correctAnswer' => 'Marketing research'
+                    ],
+                    [
+                        'id' => 3,
+                        'question' => 'What does the advisor say about psychology coursework?',
+                        'choices' => [
+                            'It is easier than business courses',
+                            'It focuses mainly on theory',
+                            'It develops valuable analytical skills',
+                            'It requires no mathematical background'
+                        ],
+                        'correctAnswer' => 'It develops valuable analytical skills'
+                    ],
+                    [
+                        'id' => 4,
+                        'question' => 'What can be inferred about the student\'s attitude toward statistics?',
+                        'choices' => [
+                            'She enjoys mathematical subjects',
+                            'She is concerned about taking statistics courses',
+                            'She has already completed statistics requirements',
+                            'She prefers statistics to research methods'
+                        ],
+                        'correctAnswer' => 'She is concerned about taking statistics courses'
+                    ]
                 ]
             ],
+            [
+                'id' => 2,
+                'title' => 'Academic Lecture: Art History - Impressionism',
+                'type' => 'lecture',
+                'audioScript' => 'Professor: Today we\'re going to discuss Impressionism, one of the most revolutionary movements in art history. Impressionism emerged in France during the 1860s and 1870s, representing a dramatic break from traditional academic painting.
 
+The term "Impressionism" actually came from a critic who was mocking the movement. He saw Claude Monet\'s painting "Impression, Sunrise" and used the title disparagingly to describe what he saw as unfinished, sloppy work. However, the artists embraced this term.
+
+What made Impressionism so revolutionary? First, let\'s talk about their painting technique. Traditional academic painters worked in studios, building up layers of paint to create smooth, detailed surfaces. Impressionists, however, painted outdoors - "en plein air" as they called it. They used loose, visible brushstrokes and often applied paint directly from the tube without mixing it extensively.
+
+The Impressionists were also obsessed with light and how it changes throughout the day. Monet, for example, painted the same haystack or cathedral at different times to capture these changes. This was radical because traditional art focused on timeless, idealized subjects.
+
+Another key aspect was their choice of subject matter. Instead of historical, religious, or mythological scenes preferred by academic artists, Impressionists painted everyday life - people in cafes, dancers, landscapes, and street scenes. They wanted to capture modern life as it was happening.
+
+The movement faced significant resistance from the established art world. The official Paris Salon repeatedly rejected their work, so the Impressionists organized their own independent exhibitions starting in 1874.',
+                'questions' => [
+                    [
+                        'id' => 5,
+                        'question' => 'How did the term "Impressionism" originate?',
+                        'choices' => [
+                            'Artists chose it to describe their technique',
+                            'A critic used it mockingly to describe their work',
+                            'It was named after a famous painting school',
+                            'The French government assigned this classification'
+                        ],
+                        'correctAnswer' => 'A critic used it mockingly to describe their work'
+                    ],
+                    [
+                        'id' => 6,
+                        'question' => 'What does "en plein air" refer to?',
+                        'choices' => [
+                            'A type of paint mixing technique',
+                            'Painting outdoors rather than in studios',
+                            'A style of brushstroke application',
+                            'A method of preparing canvases'
+                        ],
+                        'correctAnswer' => 'Painting outdoors rather than in studios'
+                    ],
+                    [
+                        'id' => 7,
+                        'question' => 'Why did Monet paint the same subjects multiple times?',
+                        'choices' => [
+                            'To practice and improve his technique',
+                            'To show different artistic styles',
+                            'To capture how light changes throughout the day',
+                            'To meet demand from art collectors'
+                        ],
+                        'correctAnswer' => 'To capture how light changes throughout the day'
+                    ],
+                    [
+                        'id' => 8,
+                        'question' => 'What was the Impressionists\' response to rejection by the Paris Salon?',
+                        'choices' => [
+                            'They changed their painting style to conform',
+                            'They stopped painting altogether',
+                            'They organized their own independent exhibitions',
+                            'They moved to other countries'
+                        ],
+                        'correctAnswer' => 'They organized their own independent exhibitions'
+                    ]
+                ]
+            ]
         ];
     }
     private function getSpeakingQuestions()
     {
         return [
-            [
-                'id' => 1,
-                'title' => 'Reading 1',
-                'passage' => 'Isi bacaan...',
-                'questions' => [
-                    ['id' => 1, 'question' => 'Apa tujuan artikel?', 'choices' => ['A', 'B', 'C', 'D'], 'correctAnswer' => 'A'],
-                    // ...
-                ]
-            ],
-            // ...
+            'id' => 1,
+            'title' => 'Independent Speaking Task',
+            'type' => 'independent',
+            'preparationTime' => 15,
+            'responseTime' => 45,
+            'question' => 'Some people prefer to live in a small town while others prefer to live in a big city. Which do you prefer? Use specific reasons and examples to support your answer.',
+            'tips' => [
+                'Take 15 seconds to prepare your response',
+                'Speak for 45 seconds',
+                'Give specific reasons and examples',
+                'Organize your thoughts clearly',
+                'State your preference clearly at the beginning',
+                'Use transitional phrases to connect your ideas'
+            ]
         ];
     }
     private function getWritingQuestions()
     {
         return [
-            [
+            'id' => 1,
+            'title' => 'Academic Discussion Writing Task',
+            'type' => 'discussion',
+            'timeLimit' => 10,
+            'wordCount' => 'At least 100 words',
+            'context' => 'Your professor is teaching a class on urban planning. You have been assigned to post in an online discussion forum for the class. Your professor asks:',
+            'passage' => 'Many cities around the world are facing rapid population growth, leading to overcrowding and strain on infrastructure. Some urban planners believe that building vertically (constructing taller buildings) is the best solution, while others advocate for horizontal expansion (spreading the city outward). Which approach do you think is more effective for managing urban growth? Why?
+
+Previous student responses:
+
+Emma: "I think vertical growth is definitely the way to go. Building upward allows cities to accommodate more people without consuming additional land. This is especially important for preserving natural areas and farmland around cities. Plus, when people live in denser areas, public transportation becomes more efficient and cost-effective. Look at cities like Tokyo or New York - they handle millions of people efficiently because of their vertical development."
+
+Marcus: "I disagree with Emma. Horizontal expansion is more sustainable in the long run. When cities spread outward, there\'s more space for parks, gardens, and recreational areas, which improve quality of life. Also, if there\'s an emergency like a fire or earthquake, it\'s much safer to evacuate low-rise buildings. Vertical cities create too much stress on infrastructure like water, electricity, and waste management systems. Suburbs also offer more affordable housing options for families."',
+            'question' => [
                 'id' => 1,
-                'title' => 'Reading 1',
-                'passage' => 'Isi bacaan...',
-                'questions' => [
-                    ['id' => 1, 'question' => 'Apa tujuan artikel?', 'choices' => ['A', 'B', 'C', 'D'], 'correctAnswer' => 'A'],
-                    // ...
-                ]
+                'question' => 'In your response, take a clear position on whether vertical or horizontal urban development is more effective. You may agree with Emma, agree with Marcus, or present your own perspective. Support your argument with specific reasons and examples. Write at least 100 words in an academic discussion style.',
             ],
-            // ...
+            'instructions' => [
+                'You have 10 minutes to write your response',
+                'Your response should be at least 100 words',
+                'Take a clear position and support it with reasons',
+                'You may agree with one student, disagree with both, or present a different perspective',
+                'Use specific examples to support your argument',
+                'Write in an academic discussion style'
+            ]
         ];
     }
 
 }
+

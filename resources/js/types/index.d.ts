@@ -41,7 +41,7 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
-export interface Questions {
+export interface Question {
     id: number;
     question: string;
     choices?: string[];
@@ -63,14 +63,29 @@ export interface ListeningSet {
 export interface SpeakingSet {
     id: number;
     title: string;
-    passage: string;
-    questions: Question[];
+    type: string;
+    preparationTime: number;
+    responseTime: number;
+    question: string;
+    tips?: string[];
+    reading?: string;
+    listening?: string;
 }
 export interface WritingSet {
     id: number;
     title: string;
-    passage: string;
-    questions: Question[];
+    type: string;
+    timeLimit: number;
+    wordCount: string;
+    context?: string;
+    question: string;
+    reading?: string;
+    listening?: string;
+    previousPosts?: Array<{
+        student: string;
+        post: string;
+    }>;
+    instructions?: string[];
 }
 
 export interface Props {

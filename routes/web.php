@@ -10,10 +10,9 @@ Route::get('/', function () {
 
 Route::get('/test/{section?}', [TestUnitController::class, 'subtestShow'])->name('test.show');
 
-
 Route::post('/submit-test', [TestUnitController::class, 'submitTest'])->name('submit-test');
-// Route::post('/submit-submitReadings', [TestUnitController::class, 'submitReadings'])->name('submit-submitReadings');
 
+Route::post('/reset-test', [TestUnitController::class, 'resetTest'])->name('reset-test');
 
 Route::post('/submit-session', [TestUnitController::class, 'ThrowSession'])->name('ThrowSession');
 

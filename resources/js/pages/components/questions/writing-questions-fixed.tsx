@@ -18,17 +18,10 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
     const [flagged, setFlag] = useState<Record<number, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Handle both array and single object structure for writing section
-    const flatQuestions = Array.isArray(questions) 
-        ? (questions as any[]).flatMap((writing: any) => 
-            writing.questions ? writing.questions.map((q: any) => ({ ...q, writingId: writing.id })) : []
-          )
-        : [{ ...(questions as any).question, writingId: (questions as any).id }];
+    const flatQuestions = questions.flatMap((writing) => writing.questions.map((q) => ({ ...q, writingId: writing.id })));
 
     const currentQuestion = flatQuestions[data.currentQuestionIndex];
-    const currentWriting = Array.isArray(questions) 
-        ? (questions as any[]).find((r: any) => r.id === currentQuestion?.writingId)
-        : questions as any;
+    const currentWriting = questions.find((r) => r.id === currentQuestion?.writingId);
 
     // Safety check untuk memastikan currentWriting dan currentQuestion ada
     if (!currentQuestion || !currentWriting) {

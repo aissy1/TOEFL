@@ -21,12 +21,30 @@ export default function NavigatorBox({ propsNav }: NavigatorBoxProps) {
 
     const sectionActive = section?.replace('-', ' ');
 
-    const flatQuestions = sectionQuestions.flatMap((reading) =>
-        reading.questions.map((question: any) => ({
-            ...question,
-            readingId: reading.id,
-        })),
-    );
+    // Handle both array and single object structure
+    const flatQuestions = Array.isArray(sectionQuestions) 
+        ? sectionQuestions.flatMap((reading) => {
+            // Handle different section structures
+            if (section === 'speaking-question' || section === 'writing-question') {
+                // For speaking and writing, each item is a single question
+                return [{
+                    id: reading.id,
+                    question: (reading as any).question || reading.title,
+                    readingId: reading.id,
+                }];
+            } else {
+                // For reading and listening, each item has a questions array
+                return reading.questions.map((question: any) => ({
+                    ...question,
+                    readingId: reading.id,
+                }));
+            }
+        })
+        : [{ 
+            id: (sectionQuestions as any).id,
+            question: (sectionQuestions as any).question?.[0]?.question || (sectionQuestions as any).title,
+            readingId: (sectionQuestions as any).id,
+        }];
 
     const handleNavigateIndex = (questionIndex: number) => {
         const isSectionPerQuestion = (section: string | undefined) => section === 'speaking-question' || section === 'writing-question';
@@ -35,10 +53,15 @@ export default function NavigatorBox({ propsNav }: NavigatorBoxProps) {
         if (isSectionPerQuestion(section)) {
             setData('currentQuestionIndex', questionIndex);
         } else {
-            // reading/listening
-            const readingIndex = sectionQuestions.findIndex((r) => r.id === question.readingId);
-            setData('currentIndex', readingIndex);
-            setData('currentQuestionIndex', questionIndex);
+            // reading/listening - only works when sectionQuestions is an array
+            if (Array.isArray(sectionQuestions)) {
+                const readingIndex = sectionQuestions.findIndex((r) => r.id === question.readingId);
+                setData('currentIndex', readingIndex);
+                setData('currentQuestionIndex', questionIndex);
+            } else {
+                // For single object case, just set the question index
+                setData('currentQuestionIndex', questionIndex);
+            }
         }
     };
 

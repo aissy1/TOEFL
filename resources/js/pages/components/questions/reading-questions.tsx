@@ -15,7 +15,7 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
 
     const [flagged, setFlag] = useState<Record<number, boolean>>({}) || false;
 
-    const flatQuestions = questions.flatMap((reading) => reading.questions.map((q) => ({ ...q, readingId: reading.id })));
+    const flatQuestions = (questions as any[]).flatMap((reading: any) => reading.questions.map((q: any) => ({ ...q, readingId: reading.id })));
 
     const currentQuestion = flatQuestions[data.currentQuestionIndex];
     const currentReading = questions.find((r) => r.id === currentQuestion.readingId)!;
@@ -41,20 +41,23 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
 
     const handleSubmit = () => {
         let score = 0;
+        const unansweredQuestions = flatQuestions.filter(q => !data.answers[q.id]);
+        
+        if (unansweredQuestions.length > 0) {
+            const confirmed = confirm(`You have ${unansweredQuestions.length} unanswered questions. Do you want to submit anyway?`);
+            if (!confirmed) return;
+        }
+
         flatQuestions.forEach((q) => {
             const userAnswer = data.answers[q.id];
             const correctAnswer = q.correctAnswer;
-            if (userAnswer?.trim().toUpperCase() === correctAnswer.trim().toUpperCase()) {
+            if (userAnswer?.trim().toUpperCase() === correctAnswer?.trim().toUpperCase()) {
                 score++;
             }
         });
 
-        if (score == 0) {
-            alert("you haven't filled in any questions yet");
-        }
-
         const finalScore = Math.round((score / flatQuestions.length) * 30);
-        console.log(finalScore);
+        console.log(`Reading Score: ${finalScore} (${score}/${flatQuestions.length})`);
 
         setData('score', finalScore);
     };
@@ -65,7 +68,7 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
 
     useEffect(() => {
         if (data.score !== 0) {
-            post('/submit-test', data);
+            post('/submit-test');
             onComplete(); // Setelah kirim
         }
     }, [data.score]);
@@ -86,7 +89,7 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
             {/* Reading Box */}
             <div className="max-h-[85vh] w-1/3 flex-1 space-y-4 overflow-auto rounded-sm bg-white p-4 shadow-sm">
                 <h2 className="text-xl font-semibold">Passage : {currentReading.title}</h2>
-                <p className="text-justify break-words text-gray-700 select-none">{currentReading.passage}</p>
+                <p className="text-justify break-words text-gray-700 select-none">{(currentReading as any).passage}</p>
             </div>
 
             {/* Question Box */}
@@ -99,12 +102,12 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
                                 {flagged[currentQuestion.id] ? (
                                     <FlagOff className="h-5 w-5 text-red-600" />
                                 ) : (
-                                    <Flag className="'h-5 w-5 text-red-600" />
+                                    <Flag className="h-5 w-5 text-red-600" />
                                 )}
                             </Button>
                         </div>
                         <div className="space-y-2">
-                            {currentQuestion.choices.map((choice: string, index: number) => (
+                            {currentQuestion.choices?.map((choice: string, index: number) => (
                                 <label
                                     key={index}
                                     className={`block cursor-pointer rounded-md border px-4 py-2 ${
