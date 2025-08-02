@@ -18,10 +18,14 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
     const [flagged, setFlag] = useState<Record<number, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const flatQuestions = questions.flatMap((writing) => writing.questions.map((q) => ({ ...q, writingId: writing.id })));
+    // Handle both array and single object formats
+    const questionsArray = Array.isArray(questions) ? questions : [questions];
+    const flatQuestions = questionsArray.flatMap((writing: any) => 
+        writing.questions ? writing.questions.map((q: any) => ({ ...q, writingId: writing.id })) : []
+    );
 
     const currentQuestion = flatQuestions[data.currentQuestionIndex];
-    const currentWriting = questions.find((r) => r.id === currentQuestion?.writingId);
+    const currentWriting = questionsArray.find((r: any) => r.id === currentQuestion?.writingId);
 
     // Safety check untuk memastikan currentWriting dan currentQuestion ada
     if (!currentQuestion || !currentWriting) {
@@ -65,7 +69,7 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
         setIsSubmitting(true);
         
         try {
-            const answeredQuestions = flatQuestions.filter(q => data.answers[q.id]?.trim());
+            const answeredQuestions = flatQuestions.filter((q: any) => data.answers[q.id]?.trim());
 
             if (answeredQuestions.length === 0) {
                 alert("Please answer at least one question before submitting.");
@@ -78,13 +82,13 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
             // For writing section, we'll use a simple scoring method
             // If API is not available, use word count and basic validation
             for (const q of answeredQuestions) {
-                const answer = data.answers[q.id]?.trim();
+                const answer = data.answers[(q as any).id]?.trim();
                 if (!answer) continue;
 
                 try {
                     // Try to call the API first
                     const payload = {
-                        question: q.question,
+                        question: (q as any).question,
                         answer: answer,
                     };
 
@@ -114,7 +118,7 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                         totalScore += score;
                     }
                 } catch (error) {
-                    console.error(`Error processing question ${q.id}:`, error);
+                    console.error(`Error processing question ${(q as any).id}:`, error);
                     // Fallback scoring
                     const wordCount = answer.split(/\s+/).length;
                     let score = 0;
@@ -153,12 +157,12 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
 
     // Get word count for current answer
     const getCurrentWordCount = () => {
-        const answer = data.answers[currentQuestion.id] || '';
+        const answer = data.answers[(currentQuestion as any)?.id] || '';
         return answer.trim().split(/\s+/).filter(word => word.length > 0).length;
     };
 
     // Check if all questions are answered
-    const allQuestionsAnswered = flatQuestions.every(q => data.answers[q.id]?.trim());
+    const allQuestionsAnswered = flatQuestions.every((q: any) => data.answers[q.id]?.trim());
     
     // Get progress percentage
     const answeredCount = Object.keys(data.answers).filter(key => data.answers[parseInt(key)]?.trim()).length;
@@ -167,7 +171,7 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
     const propsNavigator = {
         props: data,
         setData: setData,
-        sectionQuestions: questions,
+        sectionQuestions: questionsArray,
         onComplete: onComplete,
         handleSubmit: handleSubmit,
         flagged: flagged,
@@ -207,21 +211,21 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                     </div>
 
                     <div className="prose prose-sm max-w-none">
-                        <p className="text-gray-700 leading-relaxed text-justify">{currentWriting.passage}</p>
+                        <p className="text-gray-700 leading-relaxed text-justify">{(currentWriting as any)?.passage}</p>
                     </div>
                 </div>
 
                 {/* Question & Answer Box */}
                 <div className="max-h-[100vh] w-1/3">
                     <div className="max-h-[80vh] flex-1 space-y-4 overflow-auto rounded-t-lg bg-white p-6 shadow-lg border border-gray-200">
-                        <div key={currentQuestion.id} className="flex flex-col gap-4">
+                        <div key={(currentQuestion as any)?.id} className="flex flex-col gap-4">
                             <div className="flex justify-between gap-2 border-b border-gray-200 pb-3">
                                 <div className="flex-1">
                                     <h3 className="font-semibold text-gray-800 mb-2">Question {data.currentQuestionIndex + 1}</h3>
-                                    <p className="text-gray-700 leading-relaxed">{currentQuestion.question}</p>
+                                    <p className="text-gray-700 leading-relaxed">{(currentQuestion as any)?.question}</p>
                                 </div>
-                                <Button variant={'outline'} size="sm" onClick={() => toggleFlag(currentQuestion.id)}>
-                                    {flagged[currentQuestion.id] ? (
+                                <Button variant={'outline'} size="sm" onClick={() => toggleFlag((currentQuestion as any)?.id)}>
+                                    {flagged[(currentQuestion as any)?.id] ? (
                                         <FlagOff className="h-4 w-4 text-red-600" />
                                     ) : (
                                         <Flag className="h-4 w-4 text-red-600" />
@@ -252,12 +256,12 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                                 </div>
                                 <textarea
                                     id="answer"
-                                    key={`question-${currentQuestion.id}`}
-                                    name={`question-${currentQuestion.id}`}
+                                    key={`question-${(currentQuestion as any)?.id}`}
+                                    name={`question-${(currentQuestion as any)?.id}`}
                                     className="min-h-[300px] w-full resize-none rounded-lg border border-gray-300 p-4 text-sm leading-relaxed focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
                                     placeholder="Write your essay here. Express your opinion clearly and support it with specific examples. Remember to aim for at least 400 words..."
-                                    value={data.answers[currentQuestion.id] || ''}
-                                    onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                                    value={data.answers[(currentQuestion as any)?.id] || ''}
+                                    onChange={(e) => handleAnswerChange((currentQuestion as any)?.id, e.target.value)}
                                 />
                                 
                                 {/* Progress indicator */}
@@ -332,7 +336,7 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                             )}
                             
                             {/* Word count warning */}
-                            {!isMinWordsMet && data.answers[currentQuestion.id] && (
+                            {!isMinWordsMet && data.answers[(currentQuestion as any)?.id] && (
                                 <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
                                     <p className="text-sm text-yellow-700">
                                         ⚠️ Try to write at least {400 - currentWordCount} more words for a better score.
