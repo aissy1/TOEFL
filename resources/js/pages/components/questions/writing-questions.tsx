@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Props } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { Flag, FlagOff } from 'lucide-react';
@@ -17,23 +18,23 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
 
     const [flagged, setFlag] = useState<Record<number, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [message, setMessage] = useState('');
 
     // Handle both array and single object structure for writing section
-    const flatQuestions = Array.isArray(questions) 
-        ? (questions as any[]).flatMap((writing: any) => 
-            writing.questions ? writing.questions.map((q: any) => ({ ...q, writingId: writing.id })) : []
+    const flatQuestions = Array.isArray(questions)
+        ? (questions as any[]).flatMap((writing: any) =>
+              writing.questions ? writing.questions.map((q: any) => ({ ...q, writingId: writing.id })) : [],
           )
         : [{ ...(questions as any).question, writingId: (questions as any).id }];
 
     const currentQuestion = flatQuestions[data.currentQuestionIndex];
-    const currentWriting = Array.isArray(questions) 
-        ? (questions as any[]).find((r: any) => r.id === currentQuestion?.writingId)
-        : questions as any;
+    const currentWriting = Array.isArray(questions) ? (questions as any[]).find((r: any) => r.id === currentQuestion?.writingId) : (questions as any);
 
     // Safety check untuk memastikan currentWriting dan currentQuestion ada
     if (!currentQuestion || !currentWriting) {
         return (
-            <div className="flex w-full items-center justify-center h-64">
+            <div className="flex h-64 w-full items-center justify-center">
                 <div className="text-center">
                     <p className="text-gray-500">No writing questions available</p>
                 </div>
@@ -62,20 +63,38 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
         if (data.currentQuestionIndex < flatQuestions.length - 1) {
             setData('currentQuestionIndex', data.currentQuestionIndex + 1);
         } else {
-            handleSubmit();
+            // Last question → tampilkan dialog konfirmasi
+            const unansweredQuestions = flatQuestions.filter((q) => !data.answers[q.id]);
+            if (unansweredQuestions.length > 0) {
+                setMessage(`You have ${unansweredQuestions.length} unanswered questions. Do you want to submit and proceed to the next section?`);
+            } else {
+                setMessage('Do you really want to submit and proceed to the next section?');
+            }
+            setOpenDialog(true);
         }
+    };
+
+    const handleButtonDialog = () => {
+        const unansweredQuestions = flatQuestions.filter((q) => !data.answers[q.id]);
+        if (unansweredQuestions.length > 0) {
+            setMessage(`You have ${unansweredQuestions.length} unanswered questions. Do you want to submit and proceed to the next section ?`);
+        } else {
+            setMessage('Do you really want to submit and proceed to the next section ?');
+        }
+        setOpenDialog(false);
+        setMessage('');
     };
 
     const handleSubmit = async () => {
         if (isSubmitting) return; // Prevent double submission
-        
+
         setIsSubmitting(true);
-        
+
         try {
             const answeredQuestions = flatQuestions.filter((q: any) => data.answers[q.id]?.trim());
 
             if (answeredQuestions.length === 0) {
-                alert("Please answer at least one question before submitting.");
+                alert('Please answer at least one question before submitting.');
                 setIsSubmitting(false);
                 return;
             }
@@ -111,13 +130,13 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                         // Fallback scoring based on word count and basic criteria
                         const wordCount = answer.split(/\s+/).length;
                         let score = 0;
-                        
+
                         if (wordCount >= 400) score = 25;
                         else if (wordCount >= 300) score = 20;
                         else if (wordCount >= 200) score = 15;
                         else if (wordCount >= 100) score = 10;
                         else score = 5;
-                        
+
                         totalScore += score;
                     }
                 } catch (error) {
@@ -125,21 +144,20 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                     // Fallback scoring
                     const wordCount = answer.split(/\s+/).length;
                     let score = 0;
-                    
+
                     if (wordCount >= 400) score = 25;
                     else if (wordCount >= 300) score = 20;
                     else if (wordCount >= 200) score = 15;
                     else if (wordCount >= 100) score = 10;
                     else score = 5;
-                    
+
                     totalScore += score;
                 }
             }
 
             // Calculate average score if multiple questions
-            const finalScore = answeredQuestions.length > 0 ? 
-                Math.round(totalScore / answeredQuestions.length) : 0;
-            
+            const finalScore = answeredQuestions.length > 0 ? Math.round(totalScore / answeredQuestions.length) : 0;
+
             setData('score', Math.min(finalScore, 30)); // Cap at 30
         } catch (error) {
             console.error('Error submitting writing test:', error);
@@ -161,14 +179,17 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
     // Get word count for current answer
     const getCurrentWordCount = () => {
         const answer = data.answers[(currentQuestion as any)?.id] || '';
-        return answer.trim().split(/\s+/).filter(word => word.length > 0).length;
+        return answer
+            .trim()
+            .split(/\s+/)
+            .filter((word) => word.length > 0).length;
     };
 
     // Check if all questions are answered
     const allQuestionsAnswered = flatQuestions.every((q: any) => data.answers[q.id]?.trim());
-    
+
     // Get progress percentage
-    const answeredCount = Object.keys(data.answers).filter(key => data.answers[parseInt(key)]?.trim()).length;
+    const answeredCount = Object.keys(data.answers).filter((key) => data.answers[parseInt(key)]?.trim()).length;
     const progressPercentage = (answeredCount / flatQuestions.length) * 100;
 
     const propsNavigator = {
@@ -186,26 +207,24 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
     return (
         <>
             <SubmissionLoading isVisible={isSubmitting} message="Evaluating your essay and calculating score" />
-            
+
             <div className="flex w-full items-start justify-between gap-8">
                 {/* NAVIGATOR */}
                 <NavigatorBox propsNav={propsNavigator} />
 
                 {/* Reading/Prompt BOX */}
-                <div className="max-h-[85vh] w-1/3 flex-1 space-y-4 overflow-auto rounded-lg bg-white p-6 shadow-lg border border-gray-200">
+                <div className="max-h-[85vh] w-1/3 flex-1 space-y-4 overflow-auto rounded-lg border border-gray-200 bg-white p-6 shadow-lg">
                     <div className="flex items-center justify-between border-b border-gray-200 pb-4">
                         <h2 className="text-xl font-bold text-gray-800">{(currentWriting as any)?.title}</h2>
-                        <div className="text-sm text-gray-500">
-                            Writing Section
-                        </div>
+                        <div className="text-sm text-gray-500">Writing Section</div>
                     </div>
-                    
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+
+                    <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                        <div className="mb-2 flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                             <span className="font-semibold text-blue-800">Writing Guidelines</span>
                         </div>
-                        <ul className="text-sm text-blue-700 space-y-1">
+                        <ul className="space-y-1 text-sm text-blue-700">
                             <li>• Minimum 400 words required</li>
                             <li>• Express your opinion clearly</li>
                             <li>• Use examples to support your points</li>
@@ -214,18 +233,18 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                     </div>
 
                     <div className="prose prose-sm max-w-none">
-                        <p className="text-gray-700 leading-relaxed text-justify">{(currentWriting as any)?.passage}</p>
+                        <p className="text-justify leading-relaxed text-gray-700">{(currentWriting as any)?.passage}</p>
                     </div>
                 </div>
 
                 {/* Question & Answer Box */}
                 <div className="max-h-[100vh] w-1/3">
-                    <div className="max-h-[80vh] flex-1 space-y-4 overflow-auto rounded-t-lg bg-white p-6 shadow-lg border border-gray-200">
+                    <div className="max-h-[80vh] flex-1 space-y-4 overflow-auto rounded-t-lg border border-gray-200 bg-white p-6 shadow-lg">
                         <div key={(currentQuestion as any)?.id} className="flex flex-col gap-4">
                             <div className="flex justify-between gap-2 border-b border-gray-200 pb-3">
                                 <div className="flex-1">
-                                    <h3 className="font-semibold text-gray-800 mb-2">Question {data.currentQuestionIndex + 1}</h3>
-                                    <p className="text-gray-700 leading-relaxed">{(currentQuestion as any)?.question}</p>
+                                    <h3 className="mb-2 font-semibold text-gray-800">Question {data.currentQuestionIndex + 1}</h3>
+                                    <p className="leading-relaxed text-gray-700">{(currentQuestion as any)?.question}</p>
                                 </div>
                                 <Button variant={'outline'} size="sm" onClick={() => toggleFlag((currentQuestion as any)?.id)}>
                                     {flagged[(currentQuestion as any)?.id] ? (
@@ -235,84 +254,84 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                                     )}
                                 </Button>
                             </div>
-                            
+
                             {/* Answer Area */}
                             <div className="space-y-3">
-                                <div className="flex justify-between items-center">
+                                <div className="flex items-center justify-between">
                                     <label htmlFor="answer" className="block font-semibold text-gray-700">
                                         Your Essay
                                     </label>
                                     <div className="flex items-center gap-2">
-                                        <span className={`text-xs px-2 py-1 rounded-full ${
-                                            isMinWordsMet 
-                                                ? 'bg-green-100 text-green-700' 
-                                                : currentWordCount > 0 
-                                                    ? 'bg-yellow-100 text-yellow-700'
-                                                    : 'bg-gray-100 text-gray-500'
-                                        }`}>
+                                        <span
+                                            className={`rounded-full px-2 py-1 text-xs ${
+                                                isMinWordsMet
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : currentWordCount > 0
+                                                      ? 'bg-yellow-100 text-yellow-700'
+                                                      : 'bg-gray-100 text-gray-500'
+                                            }`}
+                                        >
                                             {currentWordCount} words
                                         </span>
-                                        {isMinWordsMet && (
-                                            <span className="text-xs text-green-600">✓ Min requirement met</span>
-                                        )}
+                                        {isMinWordsMet && <span className="text-xs text-green-600">✓ Min requirement met</span>}
                                     </div>
                                 </div>
                                 <textarea
                                     id="answer"
                                     key={`question-${(currentQuestion as any)?.id}`}
                                     name={`question-${(currentQuestion as any)?.id}`}
-                                    className="min-h-[300px] w-full resize-none rounded-lg border border-gray-300 p-4 text-sm leading-relaxed focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                                    className="min-h-[300px] w-full resize-none rounded-lg border border-gray-300 p-4 text-sm leading-relaxed transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                                     placeholder="Write your essay here. Express your opinion clearly and support it with specific examples. Remember to aim for at least 400 words..."
                                     value={data.answers[(currentQuestion as any)?.id] || ''}
                                     onChange={(e) => handleAnswerChange((currentQuestion as any)?.id, e.target.value)}
                                 />
-                                
+
                                 {/* Progress indicator */}
-                                <div className="bg-gray-200 rounded-full h-1.5">
-                                    <div 
-                                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                                            isMinWordsMet ? 'bg-green-500' : 'bg-blue-500'
-                                        }`}
+                                <div className="h-1.5 rounded-full bg-gray-200">
+                                    <div
+                                        className={`h-1.5 rounded-full transition-all duration-300 ${isMinWordsMet ? 'bg-green-500' : 'bg-blue-500'}`}
                                         style={{ width: `${Math.min((currentWordCount / 400) * 100, 100)}%` }}
                                     ></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     {/* Navigation Footer */}
-                    <div className="rounded-b-lg bg-white shadow-lg border border-t-0 border-gray-200">
+                    <div className="rounded-b-lg border border-t-0 border-gray-200 bg-white shadow-lg">
                         <div className="p-4">
-                            <div className="flex justify-between items-center">
-                                <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={handlePrev} 
-                                    disabled={data.currentQuestionIndex === 0}
-                                    className="px-6"
-                                >
-                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="flex items-center justify-between">
+                                <Button size="sm" variant="outline" onClick={handlePrev} disabled={data.currentQuestionIndex === 0} className="px-6">
+                                    <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                     </svg>
                                     Previous
                                 </Button>
-                                
-                                <div className="text-xs text-gray-500 text-center">
-                                    <div>{answeredCount} of {flatQuestions.length} answered</div>
-                                    <div className="text-xs text-gray-400">Question {data.currentQuestionIndex + 1} of {flatQuestions.length}</div>
+
+                                <div className="text-center text-xs text-gray-500">
+                                    <div>
+                                        {answeredCount} of {flatQuestions.length} answered
+                                    </div>
+                                    <div className="text-xs text-gray-400">
+                                        Question {data.currentQuestionIndex + 1} of {flatQuestions.length}
+                                    </div>
                                 </div>
-                                
-                                <Button 
-                                    size="sm" 
+
+                                <Button
+                                    size="sm"
                                     onClick={handleNext}
                                     disabled={isSubmitting}
                                     className={`px-6 ${data.currentQuestionIndex === flatQuestions.length - 1 ? 'bg-green-600 hover:bg-green-700' : ''}`}
                                 >
                                     {isSubmitting ? (
                                         <>
-                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                            <svg className="mr-2 -ml-1 h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                ></path>
                                             </svg>
                                             Submitting...
                                         </>
@@ -320,7 +339,7 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                                         <>
                                             {data.currentQuestionIndex === flatQuestions.length - 1 ? 'Submit Writing' : 'Next'}
                                             {data.currentQuestionIndex < flatQuestions.length - 1 && (
-                                                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                                 </svg>
                                             )}
@@ -328,19 +347,17 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                                     )}
                                 </Button>
                             </div>
-                            
+
                             {/* Show completion status */}
                             {allQuestionsAnswered && (
-                                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-center">
-                                    <p className="text-sm text-green-700">
-                                        ✓ All questions answered! Ready to submit.
-                                    </p>
+                                <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-3 text-center">
+                                    <p className="text-sm text-green-700">✓ All questions answered! Ready to submit.</p>
                                 </div>
                             )}
-                            
+
                             {/* Word count warning */}
                             {!isMinWordsMet && data.answers[(currentQuestion as any)?.id] && (
-                                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+                                <div className="mt-3 rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-center">
                                     <p className="text-sm text-yellow-700">
                                         ⚠️ Try to write at least {400 - currentWordCount} more words for a better score.
                                     </p>
@@ -349,6 +366,51 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                         </div>
                     </div>
                 </div>
+                {/* Dialog */}
+                <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+                    <DialogContent
+                        className="max-w-md"
+                        onInteractOutside={(event) => {
+                            event.preventDefault();
+                            handleButtonDialog();
+                        }}
+                    >
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center space-x-2">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+                                    <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
+                                    </svg>
+                                </div>
+                                <span>Section Status</span>
+                            </DialogTitle>
+                            <DialogDescription className="leading-relaxed text-gray-600">{message}</DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => setOpenDialog(false)} // Cancel
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                onClick={() => {
+                                    setOpenDialog(false);
+                                    handleSubmit(); // Submit & next section
+                                }}
+                                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+                            >
+                                Continue
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </>
     );

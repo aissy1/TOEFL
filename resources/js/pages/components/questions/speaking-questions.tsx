@@ -1,18 +1,18 @@
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Props } from '@/types';
 import { useForm } from '@inertiajs/react';
-import { Flag, FlagOff, Mic, MicOff, Play, Square, CheckCircle } from 'lucide-react';
+import { CheckCircle, Flag, FlagOff, Mic, MicOff, Play, Square } from 'lucide-react';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import NavigatorBox from '../layouts/navigator-question';
-import TextToSpeech from '../utils/TextToSpeech';
 
 // Enhanced Speaking Recorder Component with auto-submit
-const SpeakingRecorder = ({ 
-    onSave, 
-    questionId, 
-    onAutoSubmit 
-}: { 
-    onSave: (blob: Blob, questionId: number) => void; 
+const SpeakingRecorder = ({
+    onSave,
+    questionId,
+    onAutoSubmit,
+}: {
+    onSave: (blob: Blob, questionId: number) => void;
     questionId: number;
     onAutoSubmit?: () => void;
 }) => {
@@ -23,7 +23,7 @@ const SpeakingRecorder = ({
     const [recordingTime, setRecordingTime] = useState(0);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    
+
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -37,21 +37,17 @@ const SpeakingRecorder = ({
                     const arrayBuffer = reader.result as ArrayBuffer;
                     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
                     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                    
+
                     // Create offline context for rendering
-                    const offlineContext = new OfflineAudioContext(
-                        audioBuffer.numberOfChannels,
-                        audioBuffer.length,
-                        audioBuffer.sampleRate
-                    );
-                    
+                    const offlineContext = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.length, audioBuffer.sampleRate);
+
                     const source = offlineContext.createBufferSource();
                     source.buffer = audioBuffer;
                     source.connect(offlineContext.destination);
                     source.start();
-                    
+
                     const renderedBuffer = await offlineContext.startRendering();
-                    
+
                     // Convert to WAV
                     const wavBlob = audioBufferToWav(renderedBuffer);
                     resolve(wavBlob);
@@ -71,14 +67,14 @@ const SpeakingRecorder = ({
         const sampleRate = buffer.sampleRate;
         const arrayBuffer = new ArrayBuffer(44 + length * numberOfChannels * 2);
         const view = new DataView(arrayBuffer);
-        
+
         // WAV header
         const writeString = (offset: number, string: string) => {
             for (let i = 0; i < string.length; i++) {
                 view.setUint8(offset + i, string.charCodeAt(i));
             }
         };
-        
+
         writeString(0, 'RIFF');
         view.setUint32(4, 36 + length * numberOfChannels * 2, true);
         writeString(8, 'WAVE');
@@ -92,52 +88,52 @@ const SpeakingRecorder = ({
         view.setUint16(34, 16, true);
         writeString(36, 'data');
         view.setUint32(40, length * numberOfChannels * 2, true);
-        
+
         // Convert float samples to 16-bit PCM
         let offset = 44;
         for (let i = 0; i < length; i++) {
             for (let channel = 0; channel < numberOfChannels; channel++) {
                 const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]));
-                view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
                 offset += 2;
             }
         }
-        
+
         return new Blob([arrayBuffer], { type: 'audio/wav' });
     };
 
     const startRecording = async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
+            const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
                     noiseSuppression: true,
-                    sampleRate: 44100
-                } 
+                    sampleRate: 44100,
+                },
             });
-            
+
             const mediaRecorder = new MediaRecorder(stream, {
-                mimeType: 'audio/webm;codecs=opus'
+                mimeType: 'audio/webm;codecs=opus',
             });
-            
+
             const chunks: Blob[] = [];
-            
+
             mediaRecorder.ondataavailable = (event) => {
                 if (event.data.size > 0) {
                     chunks.push(event.data);
                 }
             };
-            
+
             mediaRecorder.onstop = async () => {
                 const webmBlob = new Blob(chunks, { type: 'audio/webm' });
                 setIsProcessing(true);
-                
+
                 try {
                     // Convert to MP3/WAV
                     const convertedBlob = await convertToMp3(webmBlob);
                     setAudioBlob(convertedBlob);
                     setAudioUrl(URL.createObjectURL(convertedBlob));
-                    
+
                     // Auto-submit setelah recording selesai
                     await handleAutoSubmit(convertedBlob);
                 } catch (error) {
@@ -147,20 +143,19 @@ const SpeakingRecorder = ({
                     setAudioUrl(URL.createObjectURL(webmBlob));
                     await handleAutoSubmit(webmBlob);
                 }
-                
-                stream.getTracks().forEach(track => track.stop());
+
+                stream.getTracks().forEach((track) => track.stop());
             };
-            
+
             mediaRecorderRef.current = mediaRecorder;
             mediaRecorder.start();
             setIsRecording(true);
             setRecordingTime(0);
-            
+
             // Start timer
             timerRef.current = setInterval(() => {
-                setRecordingTime(prev => prev + 1);
+                setRecordingTime((prev) => prev + 1);
             }, 1000);
-            
         } catch (error) {
             console.error('Error accessing microphone:', error);
             alert('Unable to access microphone. Please check your permissions.');
@@ -171,7 +166,7 @@ const SpeakingRecorder = ({
         if (mediaRecorderRef.current && isRecording) {
             mediaRecorderRef.current.stop();
             setIsRecording(false);
-            
+
             if (timerRef.current) {
                 clearInterval(timerRef.current);
             }
@@ -184,14 +179,13 @@ const SpeakingRecorder = ({
             await onSave(blob, questionId);
             setIsSubmitted(true);
             setIsProcessing(false);
-            
+
             // Call auto submit callback untuk langsung ke pertanyaan berikutnya atau selesai
             setTimeout(() => {
                 if (onAutoSubmit) {
                     onAutoSubmit();
                 }
             }, 2000); // Delay 2 detik untuk menampilkan hasil
-            
         } catch (error) {
             console.error('Error auto-submitting:', error);
             setIsProcessing(false);
@@ -229,9 +223,9 @@ const SpeakingRecorder = ({
 
     if (isSubmitted) {
         return (
-            <div className="bg-green-50 rounded-lg p-6 border border-green-200">
-                <div className="text-center space-y-3">
-                    <CheckCircle className="w-12 h-12 text-green-600 mx-auto" />
+            <div className="rounded-lg border border-green-200 bg-green-50 p-6">
+                <div className="space-y-3 text-center">
+                    <CheckCircle className="mx-auto h-12 w-12 text-green-600" />
                     <h3 className="text-lg font-semibold text-green-800">Answer Submitted Successfully!</h3>
                     <p className="text-green-600">Your speaking answer has been recorded and assessed.</p>
                     <div className="text-sm text-green-500">Moving to next question...</div>
@@ -241,25 +235,22 @@ const SpeakingRecorder = ({
     }
 
     return (
-        <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
             <div className="space-y-4">
                 {/* Recording Controls */}
                 <div className="flex items-center justify-center space-x-4">
                     {!isRecording ? (
                         <Button
                             onClick={startRecording}
-                            className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-full"
+                            className="rounded-full bg-red-500 px-6 py-3 text-white hover:bg-red-600"
                             disabled={isProcessing || audioBlob !== null}
                         >
-                            <Mic className="w-5 h-5 mr-2" />
+                            <Mic className="mr-2 h-5 w-5" />
                             {audioBlob ? 'Recording Complete' : 'Start Recording'}
                         </Button>
                     ) : (
-                        <Button
-                            onClick={stopRecording}
-                            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full animate-pulse"
-                        >
-                            <Square className="w-5 h-5 mr-2" />
+                        <Button onClick={stopRecording} className="animate-pulse rounded-full bg-red-600 px-6 py-3 text-white hover:bg-red-700">
+                            <Square className="mr-2 h-5 w-5" />
                             Stop Recording
                         </Button>
                     )}
@@ -275,11 +266,9 @@ const SpeakingRecorder = ({
                 {/* Recording Timer */}
                 {isRecording && (
                     <div className="text-center">
-                        <div className="text-2xl font-mono text-red-600 font-bold">
-                            {formatTime(recordingTime)}
-                        </div>
+                        <div className="font-mono text-2xl font-bold text-red-600">{formatTime(recordingTime)}</div>
                         <div className="text-sm text-gray-500">Recording in progress...</div>
-                        <div className="text-xs text-gray-400 mt-1">Will auto-submit when you stop</div>
+                        <div className="mt-1 text-xs text-gray-400">Will auto-submit when you stop</div>
                     </div>
                 )}
 
@@ -287,10 +276,10 @@ const SpeakingRecorder = ({
                 {isProcessing && (
                     <div className="text-center">
                         <div className="inline-flex items-center space-x-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600"></div>
                             <span className="text-sm text-gray-600">Processing and submitting audio...</span>
                         </div>
-                        <div className="text-xs text-gray-400 mt-1">Please wait while we assess your answer</div>
+                        <div className="mt-1 text-xs text-gray-400">Please wait while we assess your answer</div>
                     </div>
                 )}
 
@@ -298,26 +287,13 @@ const SpeakingRecorder = ({
                 {audioUrl && !isProcessing && !isSubmitted && (
                     <div className="space-y-3">
                         <div className="flex items-center justify-center">
-                            <Button
-                                onClick={playRecording}
-                                variant="outline"
-                                className="px-4 py-2"
-                            >
-                                {isPlaying ? (
-                                    <MicOff className="w-4 h-4 mr-2" />
-                                ) : (
-                                    <Play className="w-4 h-4 mr-2" />
-                                )}
+                            <Button onClick={playRecording} variant="outline" className="px-4 py-2">
+                                {isPlaying ? <MicOff className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
                                 {isPlaying ? 'Pause' : 'Preview Recording'}
                             </Button>
                         </div>
-                        
-                        <audio
-                            ref={audioRef}
-                            src={audioUrl}
-                            onEnded={() => setIsPlaying(false)}
-                            className="hidden"
-                        />
+
+                        <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} className="hidden" />
                     </div>
                 )}
             </div>
@@ -337,36 +313,50 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
 
     const [flagged, setFlag] = useState<Record<number, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [message, setMessage] = useState('');
+
     const [processingQuestions, setProcessingQuestions] = useState<Set<number>>(new Set());
 
     // Handle both array and single object structure for speaking section
-    const flatQuestions = Array.isArray(questions) 
-        ? questions.map((speaking: any) => ({ 
-            id: speaking.id,
-            question: speaking.question || speaking.title,
-            speakingId: speaking.id,
-            type: speaking.type || 'independent',
-            preparationTime: speaking.preparationTime || 15,
-            responseTime: speaking.responseTime || 45,
-            tips: speaking.tips || []
-        }))
-        : [{ 
-            id: (questions as any).id,
-            question: (questions as any).question || (questions as any).title,
-            speakingId: (questions as any).id,
-            type: (questions as any).type || 'independent',
-            preparationTime: (questions as any).preparationTime || 15,
-            responseTime: (questions as any).responseTime || 45,
-            tips: (questions as any).tips || []
-        }];
+    const flatQuestions = Array.isArray(questions)
+        ? questions.map((speaking: any) => ({
+              id: speaking.id,
+              question: speaking.question || speaking.title,
+              speakingId: speaking.id,
+              type: speaking.type || 'independent',
+              preparationTime: speaking.preparationTime || 15,
+              responseTime: speaking.responseTime || 45,
+              tips: speaking.tips || [],
+          }))
+        : [
+              {
+                  id: (questions as any).id,
+                  question: (questions as any).question || (questions as any).title,
+                  speakingId: (questions as any).id,
+                  type: (questions as any).type || 'independent',
+                  preparationTime: (questions as any).preparationTime || 15,
+                  responseTime: (questions as any).responseTime || 45,
+                  tips: (questions as any).tips || [],
+              },
+          ];
 
     const currentQuestion = flatQuestions[data.currentQuestionIndex];
-    const currentSpeaking = Array.isArray(questions) 
-        ? questions.find((r: any) => r.id === currentQuestion?.speakingId)
-        : questions as any;
+    const currentSpeaking = Array.isArray(questions) ? questions.find((r: any) => r.id === currentQuestion?.speakingId) : (questions as any);
 
     const toggleFlag = (id: number) => {
         setFlag((prev) => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const handleButtonDialog = () => {
+        const unansweredQuestions = flatQuestions.filter((q) => !data.answers[q.id]);
+        if (unansweredQuestions.length > 0) {
+            setMessage(`You have ${unansweredQuestions.length} unanswered questions. Do you want to submit and proceed to the next section ?`);
+        } else {
+            setMessage('Do you really want to submit and proceed to the next section ?');
+        }
+        setOpenDialog(false);
+        setMessage('');
     };
 
     const handleAutoNext = () => {
@@ -379,8 +369,8 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
     };
 
     const handleSaveRecording = async (blob: Blob, questionId: number) => {
-        setProcessingQuestions(prev => new Set([...prev, questionId]));
-        
+        setProcessingQuestions((prev) => new Set([...prev, questionId]));
+
         try {
             // Save recording to state
             setData('recordings', { ...data.recordings, [questionId]: blob });
@@ -401,16 +391,16 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
                 const score = Number(result.assessment.score);
                 console.log('Transcript:', result.transcription);
                 console.log('Score:', result.assessment.score);
-                
+
                 setData('answers', {
                     ...data.answers,
                     [questionId]: result.transcription,
                 });
-                setData('scoreRecords', { 
-                    ...data.scoreRecords, 
-                    [questionId]: score 
+                setData('scoreRecords', {
+                    ...data.scoreRecords,
+                    [questionId]: score,
                 });
-                
+
                 // Show success message briefly
                 console.log(`Recording submitted successfully! Score: ${score}`);
             } else {
@@ -421,7 +411,7 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
             console.error('Error sending audio:', error);
             alert('Failed to connect to the assessment server.');
         } finally {
-            setProcessingQuestions(prev => {
+            setProcessingQuestions((prev) => {
                 const newSet = new Set(prev);
                 newSet.delete(questionId);
                 return newSet;
@@ -435,18 +425,18 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
 
     const handleSubmit = async () => {
         if (isSubmitting) return;
-        
+
         setIsSubmitting(true);
-        
+
         try {
             const totalScore = calculateScore();
-            
+
             // Update score in form data
             setData('score', totalScore);
-            
+
             // Submit to backend
             post('/submit-test');
-            
+
             onComplete();
         } catch (error) {
             console.error('Error submitting test:', error);
@@ -473,7 +463,7 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
 
     if (!currentQuestion || !currentSpeaking) {
         return (
-            <div className="flex w-full items-center justify-center min-h-[400px]">
+            <div className="flex min-h-[400px] w-full items-center justify-center">
                 <div className="text-center">
                     <h2 className="text-xl font-semibold text-gray-600">Loading questions...</h2>
                 </div>
@@ -487,7 +477,7 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
             <NavigatorBox propsNav={propsNavigator} />
 
             {/* Reading Passage */}
-            <div className="max-h-[85vh] w-1/3 flex-1 space-y-4 overflow-auto rounded-lg bg-white p-6 shadow-lg border border-gray-200">
+            <div className="max-h-[85vh] w-1/3 flex-1 space-y-4 overflow-auto rounded-lg border border-gray-200 bg-white p-6 shadow-lg">
                 <div className="flex items-center justify-between border-b border-gray-200 pb-4">
                     <h2 className="text-xl font-semibold text-gray-800">{currentSpeaking.title}</h2>
                     <div className="text-sm text-gray-500">
@@ -496,18 +486,16 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                    <div 
-                        className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${progressPercentage}%` }}
-                    />
+                <div className="mb-4 h-2 w-full rounded-full bg-gray-200">
+                    <div className="h-2 rounded-full bg-green-500 transition-all duration-300" style={{ width: `${progressPercentage}%` }} />
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
                     <div className="flex items-center space-x-2">
-                        <Mic className="w-5 h-5 text-blue-600" />
-                        <p className="text-sm text-blue-800 font-medium">
-                            Read the passage below, then record your speaking answer. Your answer will be automatically submitted when you stop recording.
+                        <Mic className="h-5 w-5 text-blue-600" />
+                        <p className="text-sm font-medium text-blue-800">
+                            Read the passage below, then record your speaking answer. Your answer will be automatically submitted when you stop
+                            recording.
                         </p>
                     </div>
                 </div>
@@ -516,28 +504,24 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
                     {/* Display reading passage if it's an integrated speaking task */}
                     {(currentSpeaking as any).reading && (
                         <div className="mb-4">
-                            <h4 className="font-semibold text-gray-800 mb-2">Reading Passage:</h4>
-                            <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
-                                {(currentSpeaking as any).reading}
-                            </p>
+                            <h4 className="mb-2 font-semibold text-gray-800">Reading Passage:</h4>
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700">{(currentSpeaking as any).reading}</p>
                         </div>
                     )}
-                    
+
                     {/* Display listening summary if it's an integrated speaking task */}
                     {(currentSpeaking as any).listening && (
                         <div className="mb-4">
-                            <h4 className="font-semibold text-gray-800 mb-2">Listening Summary:</h4>
-                            <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
-                                {(currentSpeaking as any).listening}
-                            </p>
+                            <h4 className="mb-2 font-semibold text-gray-800">Listening Summary:</h4>
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700">{(currentSpeaking as any).listening}</p>
                         </div>
                     )}
-                    
+
                     {/* Display tips for all speaking tasks */}
                     {(currentSpeaking as any).tips && (currentSpeaking as any).tips.length > 0 && (
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                            <h4 className="font-semibold text-blue-800 mb-2">Tips:</h4>
-                            <ul className="text-sm text-blue-700 space-y-1">
+                        <div className="rounded-lg bg-blue-50 p-4">
+                            <h4 className="mb-2 font-semibold text-blue-800">Tips:</h4>
+                            <ul className="space-y-1 text-sm text-blue-700">
                                 {(currentSpeaking as any).tips.map((tip: string, index: number) => (
                                     <li key={index}>• {tip}</li>
                                 ))}
@@ -549,15 +533,15 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
 
             {/* Question & Recording Box */}
             <div className="max-h-[100vh] w-1/3">
-                <div className="max-h-[80vh] flex-1 space-y-4 overflow-auto rounded-t-lg bg-white p-6 shadow-lg border border-gray-200">
+                <div className="max-h-[80vh] flex-1 space-y-4 overflow-auto rounded-t-lg border border-gray-200 bg-white p-6 shadow-lg">
                     <div key={currentQuestion.id} className="flex flex-col gap-4">
                         {/* Question Header */}
-                        <div className="flex justify-between items-start gap-4">
-                            <p className="text-sm leading-relaxed text-gray-700 flex-1">
+                        <div className="flex items-start justify-between gap-4">
+                            <p className="flex-1 text-sm leading-relaxed text-gray-700">
                                 <span className="font-semibold text-green-600">Q{currentQuestion.id}.</span> {currentQuestion.question}
                             </p>
-                            <Button 
-                                variant="outline" 
+                            <Button
+                                variant="outline"
                                 size="sm"
                                 onClick={() => toggleFlag(currentQuestion.id)}
                                 className={`flex-shrink-0 ${flagged[currentQuestion.id] ? 'border-red-500 bg-red-50' : ''}`}
@@ -572,35 +556,27 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
 
                         {/* Recording Component */}
                         <div className="space-y-3">
-                            <label className="text-sm font-semibold text-gray-700 block">
-                                Record Your Speaking Answer:
-                            </label>
-                            
-                            <SpeakingRecorder 
-                                onSave={handleSaveRecording} 
-                                questionId={currentQuestion.id}
-                                onAutoSubmit={handleAutoNext}
-                            />
-                            
+                            <label className="block text-sm font-semibold text-gray-700">Record Your Speaking Answer:</label>
+
+                            <SpeakingRecorder onSave={handleSaveRecording} questionId={currentQuestion.id} onAutoSubmit={handleAutoNext} />
+
                             {/* Answer Status */}
                             {data.answers[currentQuestion.id] && (
-                                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3">
                                     <div className="flex items-center space-x-2">
-                                        <CheckCircle className="w-4 h-4 text-green-500" />
-                                        <span className="text-sm text-green-700 font-medium">Answer recorded and submitted</span>
+                                        <CheckCircle className="h-4 w-4 text-green-500" />
+                                        <span className="text-sm font-medium text-green-700">Answer recorded and submitted</span>
                                     </div>
                                     {data.scoreRecords[currentQuestion.id] && (
-                                        <div className="text-xs text-green-600 mt-1">
-                                            Score: {data.scoreRecords[currentQuestion.id]}/30
-                                        </div>
+                                        <div className="mt-1 text-xs text-green-600">Score: {data.scoreRecords[currentQuestion.id]}/30</div>
                                     )}
                                 </div>
                             )}
-                            
+
                             {processingQuestions.has(currentQuestion.id) && (
-                                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3">
                                     <div className="flex items-center space-x-2">
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600"></div>
                                         <span className="text-sm text-blue-700">Processing your answer...</span>
                                     </div>
                                 </div>
@@ -610,26 +586,69 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
                 </div>
 
                 {/* Status Footer - tidak ada tombol navigasi manual */}
-                <div className="rounded-b-lg bg-white shadow-lg border border-t-0 border-gray-200">
+                <div className="rounded-b-lg border border-t-0 border-gray-200 bg-white shadow-lg">
                     <div className="p-4">
                         <div className="text-center">
-                            <div className="text-sm text-gray-600 mb-2">
+                            <div className="mb-2 text-sm text-gray-600">
                                 Question {data.currentQuestionIndex + 1} of {flatQuestions.length}
                             </div>
                             <div className="text-xs text-gray-500">
                                 {answeredCount} of {flatQuestions.length} answered
                             </div>
-                            
+
                             {/* Auto-submit indicator */}
-                            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-center">
-                                <p className="text-xs text-blue-700">
-                                    🎤 Recording will auto-submit when stopped
-                                </p>
+                            <div className="mt-2 rounded border border-blue-200 bg-blue-50 p-2 text-center">
+                                <p className="text-xs text-blue-700">🎤 Recording will auto-submit when stopped</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            {/* Dialog */}
+            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+                <DialogContent
+                    className="max-w-md"
+                    onInteractOutside={(event) => {
+                        event.preventDefault();
+                        handleButtonDialog();
+                    }}
+                >
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center space-x-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+                                <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+                            </div>
+                            <span>Section Status</span>
+                        </DialogTitle>
+                        <DialogDescription className="leading-relaxed text-gray-600">{message}</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setOpenDialog(false)} // Cancel
+                        >
+                            Cancel
+                        </Button>
+
+                        <Button
+                            onClick={() => {
+                                setOpenDialog(false);
+                                handleSubmit(); // Submit & next section
+                            }}
+                            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+                        >
+                            Continue
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 });

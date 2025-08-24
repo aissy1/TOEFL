@@ -68,7 +68,7 @@ export default function TestQuestion() {
         if (currentPage?.nextId === 'scoreboard') {
             router.visit('/scoreboard');
         } else if (currentPage?.nextId) {
-            router.visit(`/test/${currentPage?.nextId}`);
+            router.visit(`/test/${currentPage?.nextId}`, { replace: true });
         }
     };
 
@@ -91,7 +91,7 @@ export default function TestQuestion() {
     // Initialize timer and check if section is already completed
     useEffect(() => {
         console.log('Initializing section:', section);
-        
+
         // Set initial timer based on current section
         if (currentPage) {
             setTimeLeft(currentPage.duration);
@@ -164,13 +164,18 @@ export default function TestQuestion() {
     const getTimerIcon = () => {
         if (isCritical) {
             return (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
                 </svg>
             );
         }
         return (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
         );
@@ -178,8 +183,8 @@ export default function TestQuestion() {
 
     if (!currentPage) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center">
-                <div className="bg-white rounded-xl p-8 shadow-lg">
+            <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-50 to-red-100">
+                <div className="rounded-xl bg-white p-8 shadow-lg">
                     <h1 className="text-xl font-bold text-red-600">Section not found</h1>
                 </div>
             </div>
@@ -192,16 +197,21 @@ export default function TestQuestion() {
                 <link rel="preconnect" href="https://fonts.bunny.net" />
                 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
             </Head>
-            
+
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100">
                 {/* Header with Timer */}
-                <div className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
+                <div className="fixed top-0 right-0 left-0 z-50 border-b border-gray-200/50 bg-white/90 shadow-sm backdrop-blur-md">
                     <div className="flex items-center justify-between px-6 py-4">
                         {/* Section Title */}
                         <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600">
+                                <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    />
                                 </svg>
                             </div>
                             <div>
@@ -211,30 +221,23 @@ export default function TestQuestion() {
                         </div>
 
                         {/* Timer */}
-                        <div className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-white font-semibold shadow-lg ${getTimerColor()}`}>
+                        <div className={`flex items-center space-x-2 rounded-xl px-4 py-2 font-semibold text-white shadow-lg ${getTimerColor()}`}>
                             {getTimerIcon()}
-                            <span className="text-sm">
-                                {formatTime(timeLeft)}
-                            </span>
+                            <span className="text-sm">{formatTime(timeLeft)}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Main Content */}
-                <div className="pt-20 min-h-screen">
+                <div className="min-h-screen pt-20">
                     <div className="container mx-auto px-4 py-6">
-                        <Component 
-                            ref={sectionRef} 
-                            onComplete={handleComplete} 
-                            section={currentPage?.id} 
-                            questions={questions} 
-                        />
+                        <Component ref={sectionRef} onComplete={handleComplete} section={currentPage?.id} questions={questions} />
                     </div>
                 </div>
 
                 {/* Dialog */}
                 <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                    <DialogContent 
+                    <DialogContent
                         className="max-w-md"
                         onInteractOutside={(event) => {
                             event.preventDefault();
@@ -243,25 +246,28 @@ export default function TestQuestion() {
                     >
                         <DialogHeader>
                             <DialogTitle className="flex items-center space-x-2">
-                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+                                    <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
                                     </svg>
                                 </div>
                                 <span>Section Status</span>
                             </DialogTitle>
-                            <DialogDescription className="text-gray-600 leading-relaxed">
-                                {message}
-                            </DialogDescription>
+                            <DialogDescription className="leading-relaxed text-gray-600">{message}</DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
                             <Button
                                 onClick={handleButtonDialog}
-                                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
+                                className="transform rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2 font-semibold text-white shadow-lg transition-all duration-200 hover:scale-[1.02] hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl"
                             >
                                 <div className="flex items-center space-x-2">
                                     <span>Continue</span>
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                     </svg>
                                 </div>

@@ -95,7 +95,7 @@ class TestUnitController extends Controller
         // Clear all test-related session data
         session()->forget([
             'ReadingScore',
-            'ListeningScore', 
+            'ListeningScore',
             'SpeakingScore',
             'WritingScore',
             'AnsweredCountReading',
@@ -104,7 +104,7 @@ class TestUnitController extends Controller
             'AnsweredCountWriting'
         ]);
 
-        return response()->json(['message' => 'Test reset successfully']);
+        return redirect()->route('home');
     }
 
     public function scoreboard()
@@ -124,7 +124,7 @@ class TestUnitController extends Controller
         ]);
     }
 
-        private function getReadingQuestions()
+    private function getReadingQuestions()
     {
         return [
             [
