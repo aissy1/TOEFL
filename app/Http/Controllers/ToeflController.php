@@ -11,10 +11,17 @@ use function Pest\Laravel\json;
 
 class ToeflController extends Controller
 {
-   public function getToefl(){
+    public function showTableToefl()
+    {
+        return redirect()->route('admin.toefl');
+    }
+
+
+    public function getToefl()
+    {
         try {
             $toefl = Toefl::with('subtests')->get();
-            
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data retrieved successfully',
@@ -29,10 +36,11 @@ class ToeflController extends Controller
         }
     }
 
-    public function showDetailToefl($id){
+    public function showDetailToefl($id)
+    {
         try {
             $toefl = Toefl::with('subtests')->find($id);
-            
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data retrieved successfully',
@@ -47,7 +55,8 @@ class ToeflController extends Controller
         }
     }
 
-    public function deleteToefl($id){
+    public function deleteToefl($id)
+    {
         try {
             $toefl = Toefl::find($id);
             $toefl->delete();
@@ -62,21 +71,22 @@ class ToeflController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
-    }   
+    }
 
-    public function createToefl(Request $request){
+    public function createToefl(Request $request)
+    {
         try {
             $toefl = Toefl::create([
                 'name' => $request->name
             ]);
             $subtests = Subtest::all();
-            
+
             foreach ($subtests as $subtest) {
-            ToeflSubtest::create([
-                'toefl_id' => $toefl->id,
-                'subtest_id' => $subtest->id
-            ]);
-        }
+                ToeflSubtest::create([
+                    'toefl_id' => $toefl->id,
+                    'subtest_id' => $subtest->id
+                ]);
+            }
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data created successfully',
@@ -89,9 +99,10 @@ class ToeflController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
-    }   
+    }
 
-    public function editToefl(Request $request, $id){
+    public function editToefl(Request $request, $id)
+    {
         try {
             $toefl = Toefl::find($id);
             $toefl->update([
@@ -112,7 +123,8 @@ class ToeflController extends Controller
         }
     }
 
-    public function changeStatusToefl(Request $request, $id){
+    public function changeStatusToefl(Request $request, $id)
+    {
         try {
             $toefl = Toefl::find($id);
             $toefl->update([

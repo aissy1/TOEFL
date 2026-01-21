@@ -2,16 +2,34 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Subtest extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'name'
+        'name',
+        'slug',
+        'order',
     ];
 
-    public function toefls()
+    /**
+     * Relasi ke konfigurasi TOEFL-SUBTEST
+     * Satu subtest bisa dipakai oleh banyak TOEFL
+     */
+    public function toeflSubtests()
     {
-        return $this->belongsToMany(Toefl::class, 'toefl_subtests', 'subtest_id', 'toefl_id');
+        return $this->hasMany(ToeflSubtest::class);
+    }
+
+    /**
+     * Relasi ke question
+     * Question WAJIB milik satu subtest
+     */
+    public function questions()
+    {
+        return $this->hasMany(Questions::class);
     }
 }

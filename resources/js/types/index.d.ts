@@ -30,6 +30,25 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
+export interface PageProps {
+    auth?: {
+        user?: {
+            id: number;
+            name: string;
+            email: string;
+        };
+    };
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+    errors?: Record<string, string>;
+}
+
+export interface Props extends PageProps {
+    users: User[];
+}
+
 export interface User {
     id: number;
     name: string;
@@ -88,8 +107,46 @@ export interface WritingSet {
     instructions?: string[];
 }
 
+export interface UserFormData {
+    id: number;
+    name: string;
+    email: string;
+    role: 'admin' | 'user';
+    password?: string;
+    password_confirmation?: string;
+}
+
+export interface ToeflFormData {
+    id: number;
+    name: string;
+    code: string;
+    status: 'active' | 'inactive';
+    subtests: ToeflSubtest[];
+}
+
+export interface ToeflSubtest {
+    subtest_id: number;
+    total_questions: number;
+    order: number;
+    duration_minutes: number; // in minutes
+    passing_score: number;
+}
+
+export interface SubtestMaster {
+    id: number;
+    name: string;
+    slug: string;
+}
+
+export interface SubtestFormData {
+    id?: number;
+    name: string;
+    order: number;
+    slug: string;
+}
+
 export interface Props {
     onComplete: () => void;
     section: string;
-    questions: ReadingSet[] | ListeningSet[] | SpeakingSet[] | WritingSet[];
+    questions: ReadingSet[] | ListeningSet[] | SturctureSet[] | SpeakingSet[] | WritingSet[];
 }

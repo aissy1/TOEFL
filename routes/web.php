@@ -3,6 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\TestUnitController;
+use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminToeflController;
+use function Termwind\render;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -20,9 +23,37 @@ Route::get('/scoreboard', [TestUnitController::class, 'scoreboard'])->name('scor
 ;
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
+    Route::get('admin/dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+
+    // Admin User Management Routes
+    Route::get('/admin/users', [AdminUserController::class, 'getUsers'])->name('admin.users');
+    Route::get('/admin/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
+    Route::post('/admin/users/create', [AdminUserController::class, 'store'])->name('admin.users.store');
+    route::get('/admin/users/edit/{user}', [AdminUserController::class, 'edit'])->name('admin.users.edit');
+    Route::put('/admin/users/update/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
+    Route::delete('/admin/users/delete/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.delete');
+
+    // Admin Toefl Management Routes
+    Route::get('/admin/toefl', [AdminToeflController::class, 'getToefl'])->name('admin.toefl');
+    Route::get('/admin/toefl/{id}/subtests', [AdminToeflController::class, 'getToeflSubtests'])->name('admin.toefl.details');
+
+    Route::get('/admin/toefl/create', [AdminToeflController::class, 'create'])->name('admin.toefl.create');
+    Route::post('/admin/toefl/create', [AdminToeflController::class, 'store'])->name('admin.toefl.store');
+    Route::get('/admin/toefl/edit/{toefl}', [AdminToeflController::class, 'edit'])->name('admin.toefl.edit');
+    Route::put('/admin/toefl/edit/{toefl}', [AdminToeflController::class, 'update'])->name('admin.toefl.update');
+    Route::delete('/admin/toefl/delete/{toefl}', [AdminToeflController::class, 'destroy'])->name('admin.toefl.delete');
+
+    // Admin Subtest Management Routes
+    Route::get('/admin/subtest', [AdminToeflController::class, 'getSubtests'])->name('admin.subtests');
+    Route::get('/admin/subtest/create', [AdminToeflController::class, 'createSubtest'])->name('admin.subtests.create');
+    Route::post('/admin/subtest/create', [AdminToeflController::class, 'storeSubtest'])->name('admin.subtests.store');
+    route::get('/admin/subtest/edit/{subtest}', [AdminToeflController::class, 'editSubtest'])->name('admin.subtests.edit');
+    Route::put('/admin/subtest/update/{subtest}', [AdminToeflController::class, 'updateSubtest'])->name('admin.subtests.update');
+
+    // Admin Questions Management Routes
+    Route::get('/admin/questions', [AdminToeflController::class, 'getQuestions'])->name('admin.questions');
 });
 
 require __DIR__ . '/settings.php';

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import ListeningQuestion from './components/questions/listening-questions';
 import ReadingQuestion from './components/questions/reading-questions';
 import SpeakingQuestion from './components/questions/speaking-questions';
+import StructureQuestion from './components/questions/structure-question';
 import WritingQuestion from './components/questions/writing-questions';
 
 const questionPage = [
@@ -13,28 +14,35 @@ const questionPage = [
         component: ReadingQuestion,
         nextId: 'listening',
         title: 'Reading Section',
-        duration: 5 * 60, // 5 minutes
+        duration: 60 * 60, // 5 minutes
     },
     {
         id: 'listening-question',
         component: ListeningQuestion,
-        nextId: 'speaking',
+        nextId: 'structure',
         title: 'Listening Section',
-        duration: 5 * 60, // 5 minutes
+        duration: 60 * 60, // 5 minutes
     },
     {
         id: 'speaking-question',
         component: SpeakingQuestion,
         nextId: 'writing',
         title: 'Speaking Section',
-        duration: 5 * 60, // 5 minutes
+        duration: 60 * 60, // 5 minutes
+    },
+    {
+        id: 'structure-question',
+        component: StructureQuestion,
+        nextId: 'writing',
+        title: 'Speaking Section',
+        duration: 60 * 60, // 5 minutes
     },
     {
         id: 'writing-question',
         component: WritingQuestion,
         nextId: 'scoreboard',
         title: 'Writing Section',
-        duration: 5 * 60, // 5 minutes
+        duration: 60 * 60, // 5 minutes
     },
 ];
 
@@ -46,6 +54,7 @@ export default function TestQuestion() {
             reading: boolean;
             listening: boolean;
             speaking: boolean;
+            structure: boolean;
             writing: boolean;
         };
     };

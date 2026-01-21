@@ -400,6 +400,7 @@ export default function Scoreboard() {
                                             )}
                                         </ul>
                                     </div>
+                                    x
                                 </div>
                             </CardContent>
                         </Card>

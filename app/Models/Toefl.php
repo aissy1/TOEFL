@@ -8,11 +8,13 @@ class Toefl extends Model
 {
     protected $fillable = [
         'name',
+        'code',
         'status'
     ];
 
-     public function subtests()
+    public function subtests()
     {
-        return $this->belongsToMany(Subtest::class, 'toefl_subtests', 'toefl_id', 'subtest_id');
+        return $this->belongsToMany(Subtest::class, 'toefl_subtests', 'toefl_id', 'subtest_id')->withPivot(['duration_minutes', 'total_questions', 'passing_score']);
+
     }
 }

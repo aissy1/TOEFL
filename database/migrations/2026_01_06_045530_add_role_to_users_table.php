@@ -10,12 +10,8 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('subtests', function (Blueprint $table) {
-            $table->id();
-            $table->string('name'); // Reading, Listening, Writing
-            $table->string('slug')->unique(); // reading, listening
-            $table->unsignedTinyInteger('order')->default(1);
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('role')->default('user')->after('email');
         });
     }
 
@@ -24,6 +20,8 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('subtests');
+        Schema::table('users', function (Blueprint $table) {
+            //
+        });
     }
 };

@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,11 +12,15 @@ return new class extends Migration
     {
         Schema::create('toefl_subtests', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('toefl_id');
-            $table->foreign('toefl_id')->references('id')->on('toefls')->onDelete('cascade');
-            $table->unsignedBigInteger('subtest_id');
-            $table->foreign('subtest_id')->references('id')->on('subtests')->onDelete('cascade');
+            $table->foreignId('toefl_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('subtest_id')->constrained()->cascadeOnDelete();
+            $table->unsignedSmallInteger('duration_minutes');
+            $table->unsignedSmallInteger('total_questions');
+            $table->unsignedSmallInteger('passing_score')->nullable();
             $table->timestamps();
+
+
+            $table->unique(['toefl_id', 'subtest_id']);
         });
     }
 
