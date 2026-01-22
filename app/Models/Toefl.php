@@ -14,7 +14,7 @@ class Toefl extends Model
 
     public function subtests()
     {
-        return $this->belongsToMany(Subtest::class, 'toefl_subtests', 'toefl_id', 'subtest_id')->withPivot(['duration_minutes', 'total_questions', 'passing_score']);
+        return $this->belongsToMany(Subtest::class, 'toefl_subtests', 'toefl_id', 'subtest_id')->withPivot(['order', 'duration_minutes', 'total_questions', 'passing_score'])->orderBy('toefl_subtests.order');
 
     }
 }

@@ -12,10 +12,10 @@ export default function EditSubtest({ subtest }: EditProps) {
         <AppLayout>
             <Head title="Edit Subtest" />
 
-            <div className="mx-auto max-w-xl space-y-6">
+            <div className="flex h-full w-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <h1 className="text-2xl font-semibold">Edit Subtest</h1>
 
-                <SubtestForm mode="edit" submitUrl={`/admin/subtests/${subtest.id}`} initialData={subtest} />
+                <SubtestForm mode="edit" submitUrl={`/admin/subtest/update/${subtest.id}`} initialData={subtest} />
             </div>
         </AppLayout>
     );

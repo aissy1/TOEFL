@@ -49,8 +49,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/admin/subtest', [AdminToeflController::class, 'getSubtests'])->name('admin.subtests');
     Route::get('/admin/subtest/create', [AdminToeflController::class, 'createSubtest'])->name('admin.subtests.create');
     Route::post('/admin/subtest/create', [AdminToeflController::class, 'storeSubtest'])->name('admin.subtests.store');
-    route::get('/admin/subtest/edit/{subtest}', [AdminToeflController::class, 'editSubtest'])->name('admin.subtests.edit');
+    Route::get('/admin/subtest/edit/{subtest}', [AdminToeflController::class, 'editSubtest'])->name('admin.subtests.edit');
     Route::put('/admin/subtest/update/{subtest}', [AdminToeflController::class, 'updateSubtest'])->name('admin.subtests.update');
+    Route::delete('/admin/subtest/delete/{id}', [AdminToeflController::class, 'destroySubtest'])->name('admin.subtests.delete');
+
 
     // Admin Questions Management Routes
     Route::get('/admin/questions', [AdminToeflController::class, 'getQuestions'])->name('admin.questions');

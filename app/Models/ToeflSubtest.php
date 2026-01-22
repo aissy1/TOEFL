@@ -15,6 +15,7 @@ class ToeflSubtest extends Model
     protected $fillable = [
         'toefl_id',
         'subtest_id',
+        'order',
         'duration_minutes',
         'passing_score',
         'total_questions',

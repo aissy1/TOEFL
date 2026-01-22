@@ -28,6 +28,7 @@ interface Toefl {
 
 interface SubtestPivot {
     duration_minutes: number;
+    order: number;
     total_questions: number;
     passing_score: number;
 }
@@ -213,7 +214,7 @@ export default function ToeflIndex({ toefls }: ToeflIndexProps) {
                                                                     <tbody>
                                                                         {details[toefl.id].subtests.map((subtest) => (
                                                                             <tr key={subtest.id} className="border-t">
-                                                                                <td className="px-3 py-2">{subtest.order}</td>
+                                                                                <td className="px-3 py-2">{subtest.pivot.order}</td>
                                                                                 <td className="px-3 py-2">{subtest.name}</td>
                                                                                 <td className="px-3 py-2">{subtest.pivot.duration_minutes}</td>
                                                                                 <td className="px-3 py-2">{subtest.pivot.passing_score}</td>

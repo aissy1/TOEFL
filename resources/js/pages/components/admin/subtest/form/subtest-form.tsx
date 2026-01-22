@@ -9,7 +9,7 @@ interface SubtestFormProps {
     method?: 'post' | 'put';
 }
 
-export default function SubtestForm({ mode, submitUrl, initialData, method = 'post' }: SubtestFormProps) {
+export default function SubtestForm({ mode, submitUrl, initialData }: SubtestFormProps) {
     const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm<SubtestFormData>({
         name: initialData?.name ?? '',
         slug: initialData?.slug ?? '',
@@ -23,16 +23,13 @@ export default function SubtestForm({ mode, submitUrl, initialData, method = 'po
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const action = method === 'post' ? post : put;
+        const action = mode === 'create' ? post : put;
 
         action(submitUrl, {
             onSuccess: async () => {
                 const confirmed = await redirectDialog({
                     title: 'Success',
-                    text:
-                        method === 'post'
-                            ? 'Data berhasil dibuat. Apakah ingin menambah data lagi?'
-                            : 'Data berhasil diperbarui. Tetap di halaman ini?',
+                    text: mode === 'create' ? 'Subtest successfully created. Stay on this page?' : 'Subtest successfully updated. Stay on this page?',
                     confirmText: 'Stay here',
                     cancelText: 'Back to Index',
                     icon: 'success',
@@ -82,6 +79,7 @@ export default function SubtestForm({ mode, submitUrl, initialData, method = 'po
                     className="mt-1 w-32 rounded border px-3 py-2"
                     value={data.order}
                     onChange={(e) => setData('order', Number(e.target.value))}
+                    min={1}
                 />
                 {errors.order && <p className="text-sm text-red-500">{errors.order}</p>}
             </div>

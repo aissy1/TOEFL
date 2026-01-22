@@ -63,17 +63,16 @@ class AdminToeflController extends Controller
             }
         });
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'TOEFL created successfully',
-        ], 201);
+        return redirect()->route('admin.toefl.create')->with('success', 'TOEFL created successfully');
     }
 
     public function edit($id)
     {
-        $toefl = Toefl::findOrFail($id);
+        $toefl = Toefl::with('subtests')->findOrFail($id);
+        $subtestMaster = Subtest::select('id', 'name')->get();
         return Inertia::render('components/admin/toefl/form/edit-toefl', [
             'toefl' => $toefl,
+            'subtestMaster' => $subtestMaster,
         ]);
     }
 
@@ -81,16 +80,67 @@ class AdminToeflController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'code' => 'required|string|max:255',
             'status' => 'required|in:active,draft,inactive',
+
+            'subtests' => 'required|array|min:1',
+            'subtests.*.subtest_id' => 'required|exists:subtests,id',
+            'subtests.*.order' => 'required|integer|min:1',
+            'subtests.*.duration_minutes' => 'required|integer|min:1',
+            'subtests.*.total_questions' => 'required|integer|min:1',
+            'subtests.*.passing_score' => 'required|integer|min:0|max:100',
         ]);
 
-        $toefl = Toefl::findOrFail($id);
-        $toefl->update($validated);
+        /** =====================
+         *  VALIDASI ORDER UNIK
+         *  ===================== */
+        $orders = collect($validated['subtests'])->pluck('order');
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'TOEFL updated successfully',
-        ]);
+        if ($orders->count() !== $orders->unique()->count()) {
+            return back()->withErrors([
+                'subtests' => 'Each subtest must have a unique order value.',
+            ]);
+        }
+
+        DB::transaction(function () use ($validated, $id) {
+            $toefl = Toefl::findOrFail($id);
+
+            /** UPDATE TOEFL */
+            $toefl->update([
+                'name' => $validated['name'],
+                'code' => $validated['code'],
+                'status' => $validated['status'],
+            ]);
+
+            /** HAPUS SEMUA SUBTEST LAMA */
+            ToeflSubtest::where('toefl_id', $toefl->id)->delete();
+
+            /** INSERT ULANG (ORDER SUDAH BERSIH) */
+            foreach ($validated['subtests'] as $subtest) {
+                ToeflSubtest::create([
+                    'toefl_id' => $toefl->id,
+                    'subtest_id' => $subtest['subtest_id'],
+                    'order' => $subtest['order'],
+                    'duration_minutes' => $subtest['duration_minutes'],
+                    'total_questions' => $subtest['total_questions'],
+                    'passing_score' => $subtest['passing_score'],
+                ]);
+            }
+        });
+
+        return redirect()
+            ->route('admin.toefl.edit', $id)
+            ->with('success', 'TOEFL updated successfully');
+    }
+
+    public function destroy($id)
+    {
+        $toefl = Toefl::with('subtests')->findOrFail($id);
+        $toefl->delete();
+
+        return redirect()
+            ->route('admin.toefl')
+            ->with('success', 'TOEFL deleted successfully');
     }
 
     public function getToeflSubtests($id)
@@ -138,10 +188,42 @@ class AdminToeflController extends Controller
 
         Subtest::create($validated);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Subtest created successfully',
-        ], 201);
+        return redirect()->route('admin.subtests.create')->with('success', 'Subtest created successfully');
+    }
+
+    public function editSubtest($id)
+    {
+        $subtest = Subtest::findOrFail($id);
+        return Inertia::render('components/admin/subtest/form/edit-form', [
+            'subtest' => $subtest,
+        ]);
+    }
+
+    public function updateSubtest(Request $request, $id)
+    {
+        $subtest = Subtest::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'order' => 'required|integer',
+            'slug' => 'required|string|max:255|unique:subtests,slug,' . $subtest->id,
+        ]);
+
+        $subtest->update($validated);
+
+        return redirect()
+            ->route('admin.subtests.edit', $id)
+            ->with('success', 'Subtest updated successfully');
+    }
+
+    public function destroySubtest($id)
+    {
+        $subtest = Subtest::findOrFail($id);
+        $subtest->delete();
+
+        return redirect()
+            ->route('admin.subtests')
+            ->with('success', 'Subtest deleted successfully');
     }
 
     // method to manage questions

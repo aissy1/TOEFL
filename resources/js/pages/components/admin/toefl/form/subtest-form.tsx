@@ -30,12 +30,12 @@ export default function SubtestForm({ masters, value, onChange }: SubtestFormPro
         onChange(value.map((item) => (item.subtest_id === subtest_id ? { ...item, [field]: newValue } : item)));
     };
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 rounded border p-4">
             <h3 className="text-lg font-semibold">Subtest Configuration</h3>
 
             {/* Checkbox List */}
             <div className="grid grid-cols-2 gap-4">
-                {masters.map((subtest) => {
+                {masters?.map((subtest) => {
                     const checked = value.some((v) => v.subtest_id === subtest.id);
 
                     return (
@@ -62,43 +62,43 @@ export default function SubtestForm({ masters, value, onChange }: SubtestFormPro
                         </thead>
                         <tbody>
                             {value.map((item) => {
-                                const subtest = masters.find((s) => s.id === item.subtest_id);
+                                const subtest = masters?.find((s) => s.id === item.subtest_id);
 
                                 return (
                                     <tr key={item.subtest_id} className="border-t">
                                         <td className="px-3 py-2">{subtest?.name}</td>
 
-                                        <td className="px-3 py-2">
+                                        <td className="px-3 py-2 text-center">
                                             <input
                                                 type="number"
-                                                className="w-20 rounded border px-2 py-1"
+                                                className="w-20 rounded border px-2 py-1 text-center"
                                                 value={item.order}
                                                 onChange={(e) => updateField(item.subtest_id, 'order', Number(e.target.value))}
                                             />
                                         </td>
 
-                                        <td className="px-3 py-2">
+                                        <td className="px-3 py-2 text-center">
                                             <input
                                                 type="number"
-                                                className="w-24 rounded border px-2 py-1"
+                                                className="w-24 rounded border px-2 py-1 text-center"
                                                 value={item.duration_minutes}
                                                 onChange={(e) => updateField(item.subtest_id, 'duration_minutes', Number(e.target.value))}
                                             />
                                         </td>
 
-                                        <td className="px-3 py-2">
+                                        <td className="px-3 py-2 text-center">
                                             <input
                                                 type="number"
-                                                className="w-24 rounded border px-2 py-1"
+                                                className="w-24 rounded border px-2 py-1 text-center"
                                                 value={item.total_questions}
                                                 onChange={(e) => updateField(item.subtest_id, 'total_questions', Number(e.target.value))}
                                             />
                                         </td>
 
-                                        <td className="px-3 py-2">
+                                        <td className="px-3 py-2 text-center">
                                             <input
                                                 type="number"
-                                                className="w-24 rounded border px-2 py-1"
+                                                className="w-24 rounded border px-2 py-1 text-center"
                                                 value={item.passing_score}
                                                 onChange={(e) => updateField(item.subtest_id, 'passing_score', Number(e.target.value))}
                                             />

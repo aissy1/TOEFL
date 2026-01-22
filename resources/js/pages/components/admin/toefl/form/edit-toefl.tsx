@@ -20,12 +20,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function EditToefl({ toefl, subtestMaster }: Props) {
+    console.log('Editing TOEFL with data:', toefl);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Toefl" />
             <div className="flex h-full w-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <h1 className="mb-6 text-2xl font-semibold">Edit Toefl</h1>
-                <ToeflForm submitUrl={`/admin/toefl/edit/${toefl.id}`} mode="edit" subtestMaster={subtestMaster} />
+                <ToeflForm submitUrl={`/admin/toefl/edit/${toefl.id}`} initialData={toefl} mode="edit" subtestMaster={subtestMaster} />
             </div>
         </AppLayout>
     );

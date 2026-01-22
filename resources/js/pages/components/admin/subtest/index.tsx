@@ -30,15 +30,15 @@ interface ToeflSubtestProps extends PageProps {
 export default function SubtestIndex({ subtests }: ToeflSubtestProps) {
     const handleDelete = async (id: number) => {
         const confirmed = await confirmDialog({
-            title: 'Delete Toefl?',
-            text: 'Toefl will be permanently removed.',
+            title: 'Delete Subtest?',
+            text: 'Subtest will be permanently removed.',
             confirmText: 'Delete',
             icon: 'warning',
         });
 
         if (!confirmed) return;
 
-        router.delete(`/admin/toefl/delete/${id}`);
+        router.delete(`/admin/subtest/delete/${id}`);
 
         Swal.fire({
             title: 'Deleted!',
