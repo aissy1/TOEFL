@@ -11,11 +11,11 @@ interface Props {
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Toefl',
-        href: 'admin/toefl',
+        href: '/admin/toefl',
     },
     {
         title: 'Edit',
-        href: 'admin/toefl/edit',
+        href: '/',
     },
 ];
 

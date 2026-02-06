@@ -5,7 +5,6 @@ use Inertia\Inertia;
 use App\Http\Controllers\TestUnitController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminToeflController;
-use function Termwind\render;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -38,7 +37,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin Toefl Management Routes
     Route::get('/admin/toefl', [AdminToeflController::class, 'getToefl'])->name('admin.toefl');
     Route::get('/admin/toefl/{id}/subtests', [AdminToeflController::class, 'getToeflSubtests'])->name('admin.toefl.details');
-
     Route::get('/admin/toefl/create', [AdminToeflController::class, 'create'])->name('admin.toefl.create');
     Route::post('/admin/toefl/create', [AdminToeflController::class, 'store'])->name('admin.toefl.store');
     Route::get('/admin/toefl/edit/{toefl}', [AdminToeflController::class, 'edit'])->name('admin.toefl.edit');
@@ -55,7 +53,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // Admin Questions Management Routes
-    Route::get('/admin/questions', [AdminToeflController::class, 'getQuestions'])->name('admin.questions');
+    Route::get('/admin/questions', [AdminToeflController::class, 'getBankQuestions'])->name('admin.questions');
+    Route::get('/admin/questions/{toefl}/subtest/{toeflSubtest}/{subtest}', [AdminToeflController::class, 'getQuestionsSubtest'])->name('admin.questions.subtest');
+    Route::get('/admin/questions/{toefl}/subtest/{toeflSubtest}/{subtest}/preview/{id}', [AdminToeflController::class, 'previewQuestionsSubtest'])->name('admin.questions.subtest.preview');
+    Route::get('/admin/questions/{toefl}/subtest/{toeflSubtest}/{subtest}/create', [AdminToeflController::class, 'createQuestionsSubtest'])->name('admin.questions.subtest.create');
+    Route::post('/admin/questions/{toefl}/subtest/{toeflSubtest}/{subtest}/store', [AdminToeflController::class, 'storeQuestionsSubtest'])->name('admin.questions.subtest.store');
+    Route::get('/admin/questions/{toefl}/subtest/{toeflSubtest}/{subtest}/edit/{id}', [AdminToeflController::class, 'editQuestionsSubtest'])->name('admin.questions.subtest.edit');
+    Route::put('/admin/questions/{toefl}/subtest/{toeflSubtest}/{subtest}/update/{id}', [AdminToeflController::class, 'updateQuestionsSubtest'])->name('admin.questions.subtest.update');
+    Route::delete('/admin/questions/{toefl}/subtest/{toeflSubtest}/{subtest}/delete/{id}', [AdminToeflController::class, 'deleteQuestionsSubtest'])->name('admin.questions.subtest.delete');
+
+    //Admin Question Passage Management Routes
+    Route::get('/admin/questions/passage', [AdminToeflController::class, 'getPassages'])->name('admin.questions.passage');
+    Route::get('/admin/questions/passage/preview/{id}', [AdminToeflController::class, 'viewPassages'])->name('admin.questions.passage.view');
+    Route::get('/admin/questions/passage/create', [AdminToeflController::class, 'createPassages'])->name('admin.questions.passage.create');
+    Route::post('/admin/questions/passage/store', [AdminToeflController::class, 'storePassages'])->name('admin.questions.passage.store');
+    Route::get('/admin/questions/passage/edit/{id}', [AdminToeflController::class, 'editPassages'])->name('admin.questions.passage.edit');
+    Route::put('/admin/questions/passage/put/{id}', [AdminToeflController::class, 'updatePassages'])->name('admin.questions.passage.update');
+    Route::delete('/admin/questions/passage/delete/{id}', [AdminToeflController::class, 'deletePassages'])->name('admin.questions.passage.delete');
 });
 
 require __DIR__ . '/settings.php';

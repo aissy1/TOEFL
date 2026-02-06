@@ -10,6 +10,8 @@ class questions extends Model
     use HasFactory;
 
     protected $fillable = [
+        'passage_id',
+        'toefl_subtest_id',
         'subtest_id',
         'question',
         'question_type',
@@ -18,7 +20,7 @@ class questions extends Model
         'point',
         'keywords',
         'min_words',
-        'max_score',
+        'order',
     ];
 
     protected $casts = [
@@ -33,6 +35,17 @@ class questions extends Model
     {
         return $this->belongsTo(Subtest::class);
     }
+    public function toeflSubtest()
+    {
+        return $this->belongsTo(ToeflSubtest::class);
+    }
+
+    public function passage()
+    {
+        return $this->belongsTo(Passage::class);
+    }
+
+
 
     /**
      * Relasi ke essay answers (writing)

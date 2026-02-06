@@ -129,8 +129,8 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
                     <div key={currentQuestion.id} className="flex flex-col gap-4">
                         {/* Question Header */}
                         <div className="flex items-start justify-between gap-4">
-                            <p className="flex-1 text-sm leading-relaxed text-gray-700">
-                                <span className="font-semibold text-blue-600">Q{currentQuestion.id}.</span> {currentQuestion.question}
+                            <p className="text-md flex-1 leading-relaxed text-gray-700">
+                                <span className="font-semibold text-blue-600">{currentQuestion.order}.</span> {currentQuestion.question}
                             </p>
                             <Button
                                 variant="outline"
@@ -171,7 +171,7 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
                                             }
                                             className="h-4 w-4 text-blue-600"
                                         />
-                                        <span className="min-w-[20px] font-semibold text-blue-600">{String.fromCharCode(65 + index)}.</span>
+                                        {/* <span className="min-w-[20px] font-semibold text-blue-600">{String.fromCharCode(65 + index)}.</span> */}
                                         <span className="text-gray-700">{choice}</span>
                                     </div>
                                 </label>

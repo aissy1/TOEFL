@@ -97,7 +97,7 @@ export default function ToeflIndex({ toefls }: ToeflIndexProps) {
 
         Swal.fire({
             title: 'Deleted!',
-            text: 'User has been deleted.',
+            text: 'Toefl has been deleted.',
             icon: 'success',
         });
     };

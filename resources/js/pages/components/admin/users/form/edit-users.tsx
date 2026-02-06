@@ -8,11 +8,11 @@ import UserForm from './user-form';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Users',
-        href: 'admin/users',
+        href: '/admin/users',
     },
     {
         title: 'Edit',
-        href: 'admin/users/edit/${user.id}',
+        href: '/',
     },
 ];
 

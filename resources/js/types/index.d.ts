@@ -60,13 +60,6 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
-export interface Question {
-    id: number;
-    question: string;
-    choices?: string[];
-    correctAnswer?: string;
-}
-
 export interface ReadingSet {
     id: number;
     title: string;
@@ -79,6 +72,7 @@ export interface ListeningSet {
     passage: string;
     questions: Question[];
 }
+
 export interface SpeakingSet {
     id: number;
     title: string;
@@ -144,6 +138,39 @@ export interface SubtestFormData {
     order: number;
     slug: string;
 }
+
+export interface QuestionIndexProps {
+    toefls: Toefl[];
+}
+
+export interface PassagesFormData {
+    id?: number;
+    subtest_id?: number;
+    title?: string;
+    text?: string;
+}
+
+export interface Question {
+    id: number;
+    question: string;
+    choices?: string[];
+    correctAnswer?: string;
+}
+
+export type QuestionFormData = {
+    id?: number;
+    passage_id: number | null;
+    toefl_subtest_id: number;
+    subtest_id: number;
+    order: number;
+    question_type: string;
+    question: string;
+    choices: { A: string; B: string; C: string; D: string };
+    correct_answer: 'A' | 'B' | 'C' | 'D';
+    min_words: number;
+    point: number;
+    keywords: string[];
+};
 
 export interface Props {
     onComplete: () => void;

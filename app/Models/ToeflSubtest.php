@@ -28,13 +28,19 @@ class ToeflSubtest extends Model
     {
         return $this->belongsTo(Toefl::class);
     }
-
     /**
      * Relasi ke Subtest
      */
     public function subtest()
     {
         return $this->belongsTo(Subtest::class);
+    }
+    /**
+     * Relasi ke questions
+     */
+    public function questions()
+    {
+        return $this->hasMany(questions::class);
     }
 
 }

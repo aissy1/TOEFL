@@ -3,13 +3,16 @@ import { type SharedData } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 
 export default function Welcome() {
-    const { data, setData, post } = useForm({
+    const { data, setData, post, errors } = useForm({
         username: '',
         password: '',
+        packetToefl: '',
     });
     const { auth } = usePage<SharedData>().props;
 
     const handleSubmit = (e: any) => {
+        console.log(data);
+
         e.preventDefault();
         if (!data.username.trim()) {
             alert('Please enter your name');
@@ -67,6 +70,35 @@ export default function Welcome() {
                         {/* Form Section */}
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
+                                <label htmlFor="toefl" className="block text-sm font-semibold text-gray-700">
+                                    Packet Toefl
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        name="toefl"
+                                        id="toefl"
+                                        value={data.packetToefl}
+                                        onChange={(e) => setData('packetToefl', e.target.value)}
+                                        placeholder="Enter your packet toefl code . . ."
+                                        className="w-full rounded-xl border border-gray-200 bg-white/50 px-4 py-3 text-gray-900 placeholder-gray-500 backdrop-blur-sm transition-all duration-200 hover:bg-white/70 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                        required
+                                    />
+                                    {/* Input icon */}
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                            />
+                                        </svg>
+                                    </div>
+                                </div>
+                                {errors.packetToefl && <p className="mt-1 text-sm text-red-600">{errors.packetToefl}</p>}
+                            </div>
+                            <div className="space-y-2">
                                 <label htmlFor="username" className="block text-sm font-semibold text-gray-700">
                                     Full Name
                                 </label>
@@ -93,9 +125,10 @@ export default function Welcome() {
                                         </svg>
                                     </div>
                                 </div>
+                                {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="username" className="block text-sm font-semibold text-gray-700">
+                                <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
                                     Password
                                 </label>
                                 <div className="relative">
@@ -121,6 +154,7 @@ export default function Welcome() {
                                         </svg>
                                     </div>
                                 </div>
+                                {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
                             </div>
 
                             <Button

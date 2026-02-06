@@ -1,7 +1,17 @@
 import AppLayout from '@/layouts/app-layout';
-import { SubtestFormData } from '@/types';
+import { SubtestFormData, type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import SubtestForm from './subtest-form';
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Subtest',
+        href: '/admin/subtest',
+    },
+    {
+        title: 'Edit Subtest',
+        href: '/',
+    },
+];
 
 interface EditProps {
     subtest: SubtestFormData;
@@ -9,7 +19,7 @@ interface EditProps {
 
 export default function EditSubtest({ subtest }: EditProps) {
     return (
-        <AppLayout>
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Subtest" />
 
             <div className="flex h-full w-full flex-1 flex-col gap-4 rounded-xl p-4">

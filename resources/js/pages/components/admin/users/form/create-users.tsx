@@ -6,11 +6,11 @@ import UserForm from './user-form';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Users',
-        href: 'admin/users',
+        href: '/admin/users',
     },
     {
         title: 'Create',
-        href: 'admin/users/create',
+        href: '/',
     },
 ];
 
