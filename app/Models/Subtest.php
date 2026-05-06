@@ -13,6 +13,11 @@ class Subtest extends Model
         'name',
         'slug',
         'order',
+        'instructions',
+    ];
+
+    protected $casts = [
+        'instructions' => 'array',
     ];
 
     /**

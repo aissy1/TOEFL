@@ -13,10 +13,11 @@ interface ToeflFormProps {
 }
 
 export default function ToeflForm({ mode, submitUrl, initialData, subtestMaster }: ToeflFormProps) {
+    console.log(initialData?.subtests);
     const normalizeSubtests = (subtests: any[] = []): ToeflSubtest[] => {
         return subtests.map((s) => ({
             subtest_id: s.id,
-            order: s.order ?? s.pivot?.order ?? 1,
+            order: s.pivot?.order ?? 1,
             duration_minutes: s.pivot?.duration_minutes ?? 0,
             total_questions: s.pivot?.total_questions ?? 0,
             passing_score: s.pivot?.passing_score ?? 0,

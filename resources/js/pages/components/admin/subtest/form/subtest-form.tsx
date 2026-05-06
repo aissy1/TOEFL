@@ -13,6 +13,7 @@ export default function SubtestForm({ mode, submitUrl, initialData }: SubtestFor
     const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm<SubtestFormData>({
         name: initialData?.name ?? '',
         slug: initialData?.slug ?? '',
+        instructions: initialData?.instructions ?? [],
         order: initialData?.order ?? 1,
     });
 
@@ -69,6 +70,33 @@ export default function SubtestForm({ mode, submitUrl, initialData }: SubtestFor
                     onChange={(e) => setData('slug', e.target.value)}
                 />
                 {errors.slug && <p className="text-sm text-red-500">{errors.slug}</p>}
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <div className="flex justify-between">
+                    <label>Instructions (4-5 Point)</label>
+                    <button
+                        type="button"
+                        onClick={() => setData('instructions', [...(data.instructions ?? []), ''])}
+                        className="cursor-pointer text-blue-600 hover:underline"
+                    >
+                        + Add Instruction
+                    </button>
+                </div>
+
+                {data.instructions?.map((item, index) => (
+                    <input
+                        key={index}
+                        className="w-full rounded border p-2"
+                        placeholder={`Instruction ${index + 1}`}
+                        value={item}
+                        onChange={(e) => {
+                            const updated = [...(data.instructions ?? [])];
+                            updated[index] = e.target.value;
+                            setData('instructions', updated);
+                        }}
+                    />
+                ))}
             </div>
 
             {/* Order */}

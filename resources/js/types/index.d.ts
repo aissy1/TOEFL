@@ -66,10 +66,18 @@ export interface ReadingSet {
     passage: string;
     questions: Question[];
 }
+
+export interface SturctureSet {
+    id: number;
+    title: string;
+    passage: string | null;
+    questions: Question[];
+}
 export interface ListeningSet {
     id: number;
     title: string;
     passage: string;
+    audio_url: string;
     questions: Question[];
 }
 
@@ -81,7 +89,7 @@ export interface SpeakingSet {
     responseTime: number;
     question: string;
     tips?: string[];
-    reading?: string;
+    passage: string | null;
     listening?: string;
 }
 export interface WritingSet {
@@ -92,7 +100,7 @@ export interface WritingSet {
     wordCount: string;
     context?: string;
     question: string;
-    reading?: string;
+    passage: string | null;
     listening?: string;
     previousPosts?: Array<{
         student: string;
@@ -137,6 +145,7 @@ export interface SubtestFormData {
     name: string;
     order: number;
     slug: string;
+    instructions?: string[];
 }
 
 export interface QuestionIndexProps {
@@ -148,6 +157,7 @@ export interface PassagesFormData {
     subtest_id?: number;
     title?: string;
     text?: string;
+    audio_url?: string;
 }
 
 export interface Question {
@@ -169,11 +179,12 @@ export type QuestionFormData = {
     correct_answer: 'A' | 'B' | 'C' | 'D';
     min_words: number;
     point: number;
-    keywords: string[];
+    keywords: string;
 };
 
 export interface Props {
     onComplete: () => void;
     section: string;
     questions: ReadingSet[] | ListeningSet[] | SturctureSet[] | SpeakingSet[] | WritingSet[];
+    idSubtest: number;
 }

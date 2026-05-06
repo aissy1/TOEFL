@@ -39,8 +39,6 @@ export default function PassagesIndex({ passages }: props) {
                 break;
 
             case 'preview':
-                console.log(`preview passage id : ${id}`);
-
                 router.visit(`/admin/questions/passage/preview/${id}`);
                 break;
 

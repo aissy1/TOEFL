@@ -70,6 +70,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/admin/questions/passage/edit/{id}', [AdminToeflController::class, 'editPassages'])->name('admin.questions.passage.edit');
     Route::put('/admin/questions/passage/put/{id}', [AdminToeflController::class, 'updatePassages'])->name('admin.questions.passage.update');
     Route::delete('/admin/questions/passage/delete/{id}', [AdminToeflController::class, 'deletePassages'])->name('admin.questions.passage.delete');
+
+    //Admin Test Attempts Management Routes
+    Route::get('/admin/attempts', [AdminToeflController::class, 'getAttempts'])->name('admin.attempts');
+    Route::get('/admin/attempts/toefl/{id}', [AdminToeflController::class, 'getToeflAttempts'])->name('admin.attempts.toefl');
+    Route::get('/admin/attempts/toefl/{id}/{userId}', [AdminToeflController::class, 'viewUserAttempts'])->name('admin.attempts.toefl.view');
+    Route::put('/admin/attempts/toefl/{id}/{userId}/{attempt}', [AdminToeflController::class, 'grade'])->name('admin.attempts.toefl.grade');
+    Route::post('/admin/attempts/toefl/{attempt}', [AdminToeflController::class, 'gradeSystem'])->name('admin.attempts.gradeSystem');
 });
 
 require __DIR__ . '/settings.php';

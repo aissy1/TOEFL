@@ -21,7 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function EditPassages({ passages }: { passages: PassagesFormData }) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create Users" />
+            <Head title="Edit Passage" />
             <div className="flex h-full w-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <h1 className="text-2xl font-semibold">Edit Passage</h1>
                 <PassagesForm method="put" submitUrl={`/admin/questions/passage/put/${passages.id}`} initialData={passages} />

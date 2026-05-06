@@ -130,7 +130,7 @@ export default function QuestionsDetails({ toefl, subtest, toeflSubtest, questio
                                 <th className="px-4 py-3 text-center">Question</th>
                                 <th className="px-4 py-3 text-center">Max Question</th>
                                 <th className="px-4 py-3 text-center">Score</th>
-                                <th className="px-4 py-3 text-center">Passing Score</th>
+                                <th className="px-4 py-3 text-center">Max Score</th>
                             </tr>
                         </thead>
                         <tbody>

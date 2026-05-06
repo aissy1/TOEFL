@@ -119,7 +119,7 @@ export default function QuestionsIndex({ toefls }: QuestionIndexProps) {
 
                                         {/* SUBTEST ROWS */}
                                         {isOpen &&
-                                            toefl.toefl_subtests.map((ts) => (
+                                            toefl.toefl_subtests.map((ts: any) => (
                                                 <tr key={ts.id} className="border-t bg-gray-50">
                                                     <td className="px-4 py-3">└ {ts.subtest.name}</td>
                                                     <td className="px-4 py-3 text-center">{ts.subtest.slug}</td>

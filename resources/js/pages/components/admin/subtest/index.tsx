@@ -47,7 +47,7 @@ export default function SubtestIndex({ subtests }: ToeflSubtestProps) {
         });
     };
 
-    const handleRoute = (mode: 'create' | 'edit' | 'delete', id?: number) => {
+    const handleRoute = (mode: 'create' | 'edit', id?: number) => {
         switch (mode) {
             case 'create':
                 router.visit('/admin/subtest/create');
@@ -55,10 +55,6 @@ export default function SubtestIndex({ subtests }: ToeflSubtestProps) {
 
             case 'edit':
                 router.get(`/admin/subtest/edit/${id}`);
-                break;
-
-            case 'delete':
-                handleDelete(id!);
                 break;
         }
     };
@@ -78,9 +74,7 @@ export default function SubtestIndex({ subtests }: ToeflSubtestProps) {
                             + Add Subtest
                         </button>
                     }
-                >
-                    <input type="text" placeholder="Search Toefl Subtest . . ." className="w-64 rounded border px-3 py-2" />
-                </PageHeader>
+                ></PageHeader>
 
                 {/* Table */}
                 <div className="overflow-x-auto rounded border bg-white">
@@ -108,13 +102,6 @@ export default function SubtestIndex({ subtests }: ToeflSubtestProps) {
                                                 className="cursor-pointer rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
                                             >
                                                 Edit
-                                            </Button>
-                                            &nbsp;
-                                            <Button
-                                                onClick={() => handleRoute('delete', subtest.id)}
-                                                className="cursor-pointer rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-700"
-                                            >
-                                                Delete
                                             </Button>
                                         </td>
                                     </tr>

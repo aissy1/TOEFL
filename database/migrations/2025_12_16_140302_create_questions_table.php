@@ -19,6 +19,7 @@ return new class extends Migration {
 
             $table->enum('question_type', ['mcq', 'essay']);
             $table->text('question');
+            $table->unsignedInteger('order');
 
             // MCQ
             $table->json('choices')->nullable();

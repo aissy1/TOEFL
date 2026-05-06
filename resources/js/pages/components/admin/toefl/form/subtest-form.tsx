@@ -73,6 +73,7 @@ export default function SubtestForm({ masters, value, onChange }: SubtestFormPro
                                                 type="number"
                                                 className="w-20 rounded border px-2 py-1 text-center"
                                                 value={item.order}
+                                                min={1}
                                                 onChange={(e) => updateField(item.subtest_id, 'order', Number(e.target.value))}
                                             />
                                         </td>

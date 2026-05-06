@@ -5,12 +5,14 @@ import { useForm } from '@inertiajs/react';
 import { Flag, FlagOff } from 'lucide-react';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import NavigatorBox from '../layouts/navigator-question';
+import renderSentence from '../utils/constructQuestions';
 
-const structureQuestion = forwardRef(function StructureQuestion({ onComplete, section, questions }: Props, ref) {
+const structureQuestion = forwardRef(function StructureQuestion({ onComplete, section, questions, idSubtest }: Props, ref) {
     const { data, setData, post } = useForm({
         answers: {} as Record<number, string>,
         currentQuestionIndex: 0,
         score: 0,
+        toeflSubtests: idSubtest,
         section: section,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,22 +67,7 @@ const structureQuestion = forwardRef(function StructureQuestion({ onComplete, se
     const answeredCount = Object.keys(data.answers).length;
 
     const handleSubmit = () => {
-        let score = 0;
-
         setIsSubmitting(true);
-
-        flatQuestions.forEach((q) => {
-            const userAnswer = data.answers[q.id];
-            const correctAnswer = q.correctAnswer;
-            if (userAnswer?.trim().toUpperCase() === correctAnswer?.trim().toUpperCase()) {
-                score++;
-            }
-        });
-
-        const finalScore = Math.round((score / flatQuestions.length) * 30);
-        console.log(`Structure Score: ${finalScore} (${score}/${flatQuestions.length})`);
-
-        setData('score', finalScore);
 
         post('/submit-test');
 
@@ -108,25 +95,24 @@ const structureQuestion = forwardRef(function StructureQuestion({ onComplete, se
     };
 
     return (
-        <div className="flex w-full items-start justify-between gap-8">
+        <div className="flex w-full flex-col items-start justify-center gap-4 lg:flex-row lg:gap-8">
             {/* Navigator */}
             <NavigatorBox propsNav={propsNavigator} />
 
-            {/* Reading Box */}
-            <div className="max-h-[85vh] w-1/3 flex-1 space-y-4 overflow-auto rounded-sm bg-white p-4 shadow-sm">
-                <h2 className="text-xl font-semibold">Passage : {currentReading.title}</h2>
-                <p className="text-justify break-words text-gray-700 select-none">{(currentReading as any).passage}</p>
-            </div>
-
             {/* Questions Section */}
-            <div className="max-h-[100vh] w-1/3">
+            <div className="max-h-[100vh] w-full lg:w-1/2">
                 <div className="max-h-[80vh] flex-1 space-y-4 overflow-auto rounded-t-lg border border-gray-200 bg-white p-6 shadow-lg">
                     <div key={currentQuestion.id} className="flex flex-col gap-4">
                         {/* Question Header */}
                         <div className="flex items-start justify-between gap-4">
-                            <p className="flex-1 text-sm leading-relaxed text-gray-700">
-                                <span className="font-semibold text-blue-600">Q{currentQuestion.id}.</span> {currentQuestion.question}
-                            </p>
+                            <div className="text-md flex gap-2 leading-relaxed text-gray-700">
+                                <p className="font-semibold text-blue-600">{currentQuestion.order}.</p>
+                                <div
+                                    dangerouslySetInnerHTML={{
+                                        __html: renderSentence(currentQuestion.question, Object.values(currentQuestion.choices)),
+                                    }}
+                                ></div>
+                            </div>
                             <Button
                                 variant="outline"
                                 size="sm"

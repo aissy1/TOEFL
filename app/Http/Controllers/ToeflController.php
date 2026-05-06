@@ -36,7 +36,7 @@ class ToeflController extends Controller
         }
     }
 
-    public function showDetailToefl($id)
+    public function showDetailToefl(int $id)
     {
         try {
             $toefl = Toefl::with('subtests')->find($id);
@@ -55,7 +55,7 @@ class ToeflController extends Controller
         }
     }
 
-    public function deleteToefl($id)
+    public function deleteToefl(int $id)
     {
         try {
             $toefl = Toefl::find($id);
@@ -101,7 +101,7 @@ class ToeflController extends Controller
         }
     }
 
-    public function editToefl(Request $request, $id)
+    public function editToefl(Request $request, int $id)
     {
         try {
             $toefl = Toefl::find($id);
@@ -123,7 +123,7 @@ class ToeflController extends Controller
         }
     }
 
-    public function changeStatusToefl(Request $request, $id)
+    public function changeStatusToefl(Request $request, int $id)
     {
         try {
             $toefl = Toefl::find($id);

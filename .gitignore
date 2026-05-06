@@ -27,3 +27,17 @@ venv/
 __pycache__/
 **/__pycache__/
 *.py[cod]
+# Python virtual environments
+scripts/venv/
+services/aes/venv/
+
+# Python cache
+scripts/__pycache__/
+services/aes/__pycache__/
+services/aes/*.pyc
+
+# LanguageTool cache
+services/aes/.cache/
+
+# SBERT model cache
+services/aes/.sentence_transformers/

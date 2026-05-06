@@ -1,98 +1,38 @@
-import React, { useEffect, useRef, useState } from 'react';
+// hooks/useSpeech.ts
+import { useEffect, useRef } from 'react';
 
-interface TextToSpeechProps {
-    text: string;
-}
+export function useSpeech() {
+    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-const TextToSpeech: React.FC<TextToSpeechProps> = ({ text }) => {
-    const [speaking, setSpeaking] = useState(false);
-    const [buttonDisabled, setButtonDisabled] = useState(false);
-    const loopCountRef = useRef(0);
-    const stoppedRef = useRef(false);
-    const prevTextRef = useRef('');
-
-    const speak = () => {
-        if (speaking || buttonDisabled) return;
-
-        stoppedRef.current = false;
-        // Jangan reset loopCountRef ke 0 lagi, supaya bisa lanjut dari iterasi terakhir
-        // Tapi karena user stop bisa ulang dari iterasi ke-1, kita reset hanya kalau belum ada iterasi
-        if (loopCountRef.current >= 2) {
-            // Kalau sudah 2x selesai, tidak boleh speak lagi
+    const speak = (text: string, onEnd?: () => void) => {
+        if (!window.speechSynthesis) {
+            onEnd?.();
             return;
         }
-        console.log(text);
-        console.dir(prevTextRef);
-        console.log(`ini text sebelumnya ${JSON.stringify(prevTextRef)}`);
 
-        setSpeaking(true);
+        window.speechSynthesis.cancel(); // stop jika ada yang sedang berjalan
 
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-UK';
-        utterance.rate = 1;
-        utterance.pitch = 2;
-        utterance.volume = 1;
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9; // sedikit lebih lambat
+        utterance.pitch = 1;
+        utterance.volume = 0.5;
 
-        utterance.onend = () => {
-            loopCountRef.current += 1;
+        utterance.onend = () => onEnd?.();
+        utterance.onerror = () => onEnd?.(); // fallback jika error
 
-            if (stoppedRef.current) {
-                setSpeaking(false);
-                return;
-            }
-
-            if (loopCountRef.current < 2) {
-                window.speechSynthesis.speak(utterance);
-            } else {
-                setSpeaking(false);
-                setButtonDisabled(true);
-            }
-        };
-
-        utterance.onerror = () => {
-            setSpeaking(false);
-        };
-
+        utteranceRef.current = utterance;
         window.speechSynthesis.speak(utterance);
     };
 
-    const stop = () => {
-        if (!speaking) return;
-        stoppedRef.current = true;
-        window.speechSynthesis.cancel();
-        setSpeaking(false);
-
-        // Set loopCount jadi 1 saat user stop, dianggap sudah iterasi 1
-        loopCountRef.current = 1;
+    const cancel = () => {
+        window.speechSynthesis?.cancel();
     };
 
-    // 🔄 Reset state jika passage berubah
+    // Cleanup saat unmount
     useEffect(() => {
-        if (prevTextRef.current !== text) {
-            prevTextRef.current = text;
+        return () => cancel();
+    }, []);
 
-            window.speechSynthesis.cancel(); // hentikan speech sebelumnya
-
-            setSpeaking(false);
-            setButtonDisabled(false);
-            loopCountRef.current = 0;
-            stoppedRef.current = false;
-        }
-    }, [text]);
-
-    return (
-        <div>
-            <button
-                onClick={speaking ? stop : speak}
-                disabled={buttonDisabled}
-                className={`rounded px-4 py-2 text-white ${
-                    speaking ? 'bg-red-600' : buttonDisabled ? 'cursor-not-allowed bg-gray-400' : 'bg-blue-500'
-                }`}
-            >
-                {speaking ? 'Stop' : 'Play'}
-            </button>
-        </div>
-    );
-};
-
-export default TextToSpeech;
+    return { speak, cancel };
+}

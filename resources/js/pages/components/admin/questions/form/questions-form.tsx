@@ -2,9 +2,28 @@ import { redirectDialog } from '@/pages/components/utils/popup-modal';
 import { type QuestionFormData } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+// import { renderSentence } from '../../../utils/constructQuestions';
+
+function escapeRegex(text: string) {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function renderSentence(sentence: string, choices: string[]) {
+    let result = sentence;
+
+    choices.forEach((choice) => {
+        const safe = escapeRegex(choice);
+        const regex = new RegExp(`\\b${safe}\\b`, 'gi');
+
+        result = result.replace(regex, `<span class="underline font-bold">${choice}</span>`);
+    });
+
+    return result;
+}
 
 export default function QuestionsForm({ initialData, submitUrl, method = 'post' }: any) {
     const [disabled, setDisabled] = useState(false);
+    const [textPassage, setTextPassage] = useState('');
     const { passages } = usePage().props as unknown as {
         passages: {
             id: number;
@@ -31,14 +50,16 @@ export default function QuestionsForm({ initialData, submitUrl, method = 'post' 
         order: initialData?.order ?? lastQuestion,
         question_type: initialData?.question_type ?? '',
         question: initialData?.question ?? '',
-        min_words: initialData?.min_words ?? 200,
+        min_words: initialData?.min_words ?? 0,
         choices: initialData?.choices ?? { A: '', B: '', C: '', D: '' },
         correct_answer: initialData?.correct_answer ?? '',
-        keywords: ['', '', ''],
+        keywords: initialData?.keywords ?? '',
         point: initialData?.point ?? 1,
     });
 
-    const textPassage = passages.find((s) => s.id === data.passage_id)?.text;
+    const passage = passages.find((s) => s.id === data.passage_id);
+
+    const cleanText = (text: string) => text.replace(/\\(.)/g, '$1');
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -57,7 +78,7 @@ export default function QuestionsForm({ initialData, submitUrl, method = 'post' 
                 });
 
                 if (!confirmed) {
-                    router.visit(`/admin/questions/${context.toefl}/subtest/${context.toeflSubtest}/${context.subtest}`);
+                    router.visit(`/admin/questions/${context.toefl}/subtest/${context.toeflSubtest}/${context.subtest}`, { replace: true });
                 } else {
                     reset();
                     clearErrors();
@@ -75,6 +96,38 @@ export default function QuestionsForm({ initialData, submitUrl, method = 'post' 
             setDisabled(true);
         }
     }, []);
+
+    useEffect(() => {
+        if (!passage) {
+            setTextPassage('');
+            return;
+        }
+
+        const isJSON = (text: string): boolean => {
+            try {
+                JSON.parse(text);
+                return true;
+            } catch {
+                return false;
+            }
+        };
+
+        if (isJSON(passage.text)) {
+            const parsed = JSON.parse(passage.text);
+            const actorMap: Record<string, string> = {};
+            parsed.actors.forEach((a: any) => {
+                actorMap[a.id] = a.name;
+            });
+
+            const formatted = parsed.dialog.map((d: any) => `${actorMap[d.actor_id] ?? 'Unknown'}: ${cleanText(d.text)}`).join('\n');
+
+            setTextPassage(formatted);
+        } else {
+            setTextPassage(passage.text ?? '');
+        }
+    }, [data.passage_id]);
+
+    const choicesFilled = data.choices && Object.values(data.choices).every((choice) => choice && choice.trim() !== '');
 
     return (
         <form onSubmit={submit} className="space-y-6 rounded border bg-gray-50 p-6">
@@ -108,7 +161,7 @@ export default function QuestionsForm({ initialData, submitUrl, method = 'post' 
                             }}
                         >
                             <option value="">Select Passage</option>
-                            {/* option dari backend */}
+                            {/* option from backend */}
                             {passages.map((s) => (
                                 <option key={s.id} value={s.id}>
                                     {s.title}
@@ -142,7 +195,8 @@ export default function QuestionsForm({ initialData, submitUrl, method = 'post' 
                             className="w-full rounded border p-2"
                             placeholder="Point"
                             value={data.point}
-                            disabled={disabled}
+                            disabled={disabled || data.question_type === 'essay'}
+                            min={0}
                             onChange={(e) => setData('point', Number(e.target.value))}
                         />
                         {errors.point && <p className="text-sm text-red-500">{errors.point}</p>}
@@ -157,7 +211,8 @@ export default function QuestionsForm({ initialData, submitUrl, method = 'post' 
                         >
                             <option value="">-- Select Type --</option>
                             <option value="multiple_choice">Multiple Choice</option>
-                            <option value="essay">Essay</option>
+                            <option value="written">Written</option>
+                            <option value="essay">Short Essay ( 5-20 words )</option>
                         </select>
                         {errors.question_type && <p className="text-sm text-red-500">{errors.question_type}</p>}
                     </div>
@@ -200,41 +255,73 @@ export default function QuestionsForm({ initialData, submitUrl, method = 'post' 
                             </div>
                         </div>
                     )}
+                    {data.question_type === 'written' && (
+                        <div className="space-y-3">
+                            <label className="font-medium">Question View</label>
+                            {/* <input className="w-full rounded border px-3 py-2" placeholder="Question View" value={data.question} disabled /> */}
+                            {choicesFilled ? (
+                                <div
+                                    className="w-full rounded border bg-gray-100 p-3"
+                                    dangerouslySetInnerHTML={{
+                                        __html: renderSentence(data.question, Object.values(data.choices)),
+                                    }}
+                                />
+                            ) : (
+                                <div className="rounded border border-dashed p-3 text-sm text-gray-400">
+                                    Fill all choices to preview the question.
+                                </div>
+                            )}
+                            <label className="font-medium">
+                                Choices <span className="text-gray-400">( check if there is a space after the word )</span>
+                            </label>
+                            {errors.choices && <p className="text-sm text-red-500">{errors.choices}</p>}
+                            {errors.correct_answer && <p className="text-sm text-red-500">{errors.correct_answer}</p>}
+                            <div className="grid grid-cols-2 gap-3">
+                                {(['A', 'B', 'C', 'D'] as const).map((key) => (
+                                    <div key={key} className="flex items-center gap-2">
+                                        <input
+                                            className="w-full rounded border px-3 py-2"
+                                            placeholder={`Choice ${key}`}
+                                            value={data.choices[key]}
+                                            disabled={disabled}
+                                            onChange={(e) =>
+                                                setData('choices', {
+                                                    ...data.choices,
+                                                    [key]: e.target.value,
+                                                })
+                                            }
+                                        />
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setData('correct_answer', key)}
+                                            disabled={disabled}
+                                            className={`rounded px-3 py-2 text-sm text-white ${
+                                                data.correct_answer === key ? 'bg-green-600' : 'bg-gray-400'
+                                            }`}
+                                        >
+                                            {data.correct_answer === key ? 'Correct' : 'Set'}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* ESSAY */}
                     {data.question_type === 'essay' && (
                         <div className="flex items-center gap-5">
-                            <div className="grid grid-rows-2 gap-2">
-                                <label>Min Words</label>
-                                <input
-                                    type="number"
-                                    className="rounded border p-2"
-                                    placeholder="Point"
-                                    value={data.min_words}
-                                    onChange={(e) => setData('min_words', Number(e.target.value))}
+                            <div className="flex w-full flex-col items-start gap-2">
+                                <label>Model Answer</label>
+                                <textarea
+                                    className="w-full rounded border p-2"
+                                    placeholder="Input Answer Here . . ."
+                                    value={data.keywords}
+                                    disabled={disabled}
+                                    onChange={(e) => setData('keywords', e.target.value)}
                                 />
-                                {errors.min_words && <p className="text-sm text-red-500">{errors.min_words}</p>}
+                                {errors.correct_answer && <p className="text-sm text-red-500">{errors.correct_answer}</p>}
                             </div>
-
-                            <div className="grid w-full grid-cols-3 gap-4">
-                                {data.keywords.map((keyword, index) => (
-                                    <div className="grid grid-rows-2 gap-2">
-                                        <label>Keywords {index + 1}</label>
-                                        <input
-                                            key={index}
-                                            className="w-full rounded border px-3 py-2"
-                                            placeholder={`Keyword ${index + 1}`}
-                                            value={keyword}
-                                            onChange={(e) => {
-                                                const updated = [...data.keywords];
-                                                updated[index] = e.target.value;
-                                                setData('keywords', updated);
-                                            }}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                            {errors.keywords && <p className="text-sm text-red-500">{errors.keywords}</p>}
                         </div>
                     )}
                 </div>

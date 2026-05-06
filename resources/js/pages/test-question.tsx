@@ -8,54 +8,34 @@ import SpeakingQuestion from './components/questions/speaking-questions';
 import StructureQuestion from './components/questions/structure-question';
 import WritingQuestion from './components/questions/writing-questions';
 
-const questionPage = [
-    {
-        id: 'reading-question',
-        component: ReadingQuestion,
-        nextId: 'listening',
-        title: 'Reading Section',
-        duration: 60 * 60, // 5 minutes
-    },
-    {
-        id: 'listening-question',
-        component: ListeningQuestion,
-        nextId: 'structure',
-        title: 'Listening Section',
-        duration: 60 * 60, // 5 minutes
-    },
-    {
-        id: 'speaking-question',
-        component: SpeakingQuestion,
-        nextId: 'writing',
-        title: 'Speaking Section',
-        duration: 60 * 60, // 5 minutes
-    },
-    {
-        id: 'structure-question',
-        component: StructureQuestion,
-        nextId: 'writing',
-        title: 'Speaking Section',
-        duration: 60 * 60, // 5 minutes
-    },
-    {
-        id: 'writing-question',
-        component: WritingQuestion,
-        nextId: 'scoreboard',
-        title: 'Writing Section',
-        duration: 60 * 60, // 5 minutes
-    },
-];
+const questionComponentMap: Record<string, any> = {
+    reading: ReadingQuestion,
+    listening: ListeningQuestion,
+    speaking: SpeakingQuestion,
+    writing: WritingQuestion,
+    essay: WritingQuestion,
+    structure: StructureQuestion,
+};
 
 export default function TestQuestion() {
-    const { section, questions, answeredCounts } = usePage().props as unknown as {
-        section?: string;
+    const { section, questions, answeredCounts, currentSubtest, nextSection } = usePage().props as unknown as {
+        section: string;
+        currentSubtest: {
+            id: number;
+            title: string;
+            order: number;
+            duration_minutes: number;
+            total_questions: number;
+        };
         questions?: any[];
+        nextSection: string;
         answeredCounts: {
             reading: boolean;
             listening: boolean;
             speaking: boolean;
             structure: boolean;
             writing: boolean;
+            essay: boolean;
         };
     };
 
@@ -67,17 +47,20 @@ export default function TestQuestion() {
 
     const sectionRef = useRef<{ handleSubmit: () => void }>(null);
 
-    const currentPage = questionPage.find((page) => page.id === section);
-    const sectionActive = section?.replace('-question', '');
+    const baseSection = section.replace('-question', '');
 
-    const Component = currentPage?.component ?? (() => <div>Page not found</div>);
+    const Component = questionComponentMap[baseSection];
+
+    if (!Component) {
+        return <div>Question component not found</div>;
+    }
 
     const handleComplete = () => {
         setIsTimerActive(false);
-        if (currentPage?.nextId === 'scoreboard') {
+        if (nextSection === 'scoreboard') {
             router.visit('/scoreboard');
-        } else if (currentPage?.nextId) {
-            router.visit(`/test/${currentPage?.nextId}`, { replace: true });
+        } else if (nextSection) {
+            router.visit(`/test/${nextSection}`, { replace: true });
         }
     };
 
@@ -99,11 +82,9 @@ export default function TestQuestion() {
 
     // Initialize timer and check if section is already completed
     useEffect(() => {
-        console.log('Initializing section:', section);
-
         // Set initial timer based on current section
-        if (currentPage) {
-            setTimeLeft(currentPage.duration);
+        if (section) {
+            setTimeLeft(currentSubtest.duration_minutes * 60);
         }
 
         // Check if section is already completed
@@ -111,6 +92,9 @@ export default function TestQuestion() {
         switch (section) {
             case 'reading-question':
                 isCompleted = answeredCounts.reading;
+                break;
+            case 'structure-question':
+                isCompleted = answeredCounts.structure;
                 break;
             case 'listening-question':
                 isCompleted = answeredCounts.listening;
@@ -121,19 +105,22 @@ export default function TestQuestion() {
             case 'writing-question':
                 isCompleted = answeredCounts.writing;
                 break;
+            case 'essay-question':
+                isCompleted = answeredCounts.essay;
+                break;
         }
 
         setAnsweredCount(isCompleted);
 
         if (isCompleted) {
             setOpenDialog(true);
-            setMessage(`You have already completed the ${currentPage?.title || sectionActive}!`);
+            setMessage(`You have already completed the ${currentSubtest.title}!`);
             setIsTimerActive(false);
             return;
         }
 
         setIsTimerActive(true);
-    }, [section, answeredCounts, currentPage, sectionActive]);
+    }, [section, answeredCounts]);
 
     // Timer effect
     useEffect(() => {
@@ -190,7 +177,7 @@ export default function TestQuestion() {
         );
     };
 
-    if (!currentPage) {
+    if (!Component) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-50 to-red-100">
                 <div className="rounded-xl bg-white p-8 shadow-lg">
@@ -202,7 +189,7 @@ export default function TestQuestion() {
 
     return (
         <>
-            <Head title={`${currentPage.title} - TOEFL Test`}>
+            <Head title={`${baseSection} - TOEFL Test`}>
                 <link rel="preconnect" href="https://fonts.bunny.net" />
                 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
             </Head>
@@ -224,7 +211,7 @@ export default function TestQuestion() {
                                 </svg>
                             </div>
                             <div>
-                                <h1 className="text-lg font-bold text-gray-800">{currentPage.title}</h1>
+                                <h1 className="text-lg font-bold text-gray-800">{currentSubtest.title}</h1>
                                 <p className="text-xs text-gray-500">TOEFL Practice Test</p>
                             </div>
                         </div>
@@ -240,7 +227,13 @@ export default function TestQuestion() {
                 {/* Main Content */}
                 <div className="min-h-screen pt-20">
                     <div className="container mx-auto px-4 py-6">
-                        <Component ref={sectionRef} onComplete={handleComplete} section={currentPage?.id} questions={questions} />
+                        <Component
+                            ref={sectionRef}
+                            onComplete={handleComplete}
+                            section={section}
+                            questions={questions}
+                            idSubtest={currentSubtest.id}
+                        />
                     </div>
                 </div>
 

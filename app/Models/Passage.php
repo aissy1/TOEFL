@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Passage extends Model
 {
-    protected $fillable = ['subtest_id', 'title', 'text'];
+    protected $fillable = ['subtest_id', 'title', 'text', 'audio_url'];
 
     protected $casts = [
         'text' => 'array',

@@ -6,13 +6,14 @@ import { Flag, FlagOff } from 'lucide-react';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import NavigatorBox from '../layouts/navigator-question';
 
-const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, section, questions }: Props, ref) {
+const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, section, questions, idSubtest }: Props, ref) {
     const { data, setData, post } = useForm({
         answers: {} as Record<number, string>,
         currentQuestionIndex: 0,
-        score: 0,
         section: section,
+        toeflSubtests: idSubtest,
     });
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [flagged, setFlag] = useState<Record<number, boolean>>({}) || false;
     const [openDialog, setOpenDialog] = useState(false);
@@ -65,27 +66,9 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
     const answeredCount = Object.keys(data.answers).length;
 
     const handleSubmit = () => {
-        let score = 0;
-        // const unansweredQuestions = flatQuestions.filter((q) => !data.answers[q.id]);
-        // if (unansweredQuestions.length > 0) {
-        //     const confirmed = confirm(`You have ${unansweredQuestions.length} unanswered questions. Do you want to submit anyway?`);
-        //     if (!confirmed) return;
-        // }
-
         setIsSubmitting(true);
 
-        flatQuestions.forEach((q) => {
-            const userAnswer = data.answers[q.id];
-            const correctAnswer = q.correctAnswer;
-            if (userAnswer?.trim().toUpperCase() === correctAnswer?.trim().toUpperCase()) {
-                score++;
-            }
-        });
-
-        const finalScore = Math.round((score / flatQuestions.length) * 30);
-        console.log(`Reading Score: ${finalScore} (${score}/${flatQuestions.length})`);
-
-        setData('score', finalScore);
+        console.log('Submitting data:', data);
 
         post('/submit-test');
 
@@ -98,12 +81,6 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
         handleSubmit,
     }));
 
-    // useEffect(() => {
-    //     if (data.score !== 0) {
-
-    //     }
-    // }, [data.score]);
-
     const propsNavigator = {
         props: data,
         setData: setData,
@@ -113,23 +90,29 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
     };
 
     return (
-        <div className="flex w-full items-start justify-between gap-8">
+        <div className="flex w-full flex-col items-start justify-between gap-4 lg:flex-row lg:gap-8">
             {/* Navigator */}
             <NavigatorBox propsNav={propsNavigator} />
 
             {/* Reading Box */}
-            <div className="max-h-[85vh] w-1/3 flex-1 space-y-4 overflow-auto rounded-sm bg-white p-4 shadow-sm">
-                <h2 className="text-xl font-semibold">Passage : {currentReading.title}</h2>
-                <p className="text-justify break-words text-gray-700 select-none">{(currentReading as any).passage}</p>
+            <div className="max-h-[50vh] w-full flex-1 space-y-4 overflow-auto rounded-sm bg-white p-4 shadow-sm lg:max-h-[85vh] lg:w-1/3">
+                <h2 className="text-xl font-semibold select-none">Passage : {currentReading.title}</h2>
+                {/* <p className="text-justify break-words text-gray-700 select-none">{(currentReading as any).passage}</p> */}
+                <textarea
+                    className="w-full resize-none text-justify whitespace-pre-line text-gray-700 select-none"
+                    value={(currentReading as any).passage}
+                    rows={22}
+                    disabled
+                />
             </div>
 
             {/* Questions Section */}
-            <div className="max-h-[100vh] w-1/3">
+            <div className="max-h-[100vh] w-full lg:w-1/3">
                 <div className="max-h-[80vh] flex-1 space-y-4 overflow-auto rounded-t-lg border border-gray-200 bg-white p-6 shadow-lg">
                     <div key={currentQuestion.id} className="flex flex-col gap-4">
                         {/* Question Header */}
                         <div className="flex items-start justify-between gap-4">
-                            <p className="text-md flex-1 leading-relaxed text-gray-700">
+                            <p className="text-md flex-1 leading-relaxed text-gray-700 select-none">
                                 <span className="font-semibold text-blue-600">{currentQuestion.order}.</span> {currentQuestion.question}
                             </p>
                             <Button

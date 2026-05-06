@@ -14,6 +14,7 @@ class questions extends Model
         'toefl_subtest_id',
         'subtest_id',
         'question',
+        'question_audio_url',
         'question_type',
         'choices',
         'correct_answer',
@@ -50,8 +51,8 @@ class questions extends Model
     /**
      * Relasi ke essay answers (writing)
      */
-    // public function essayAnswers()
-    // {
-    //     return $this->hasMany(EssayAnswer::class);
-    // }
+    public function essayAnswers()
+    {
+        return $this->hasMany(EssayAnswer::class);
+    }
 }
