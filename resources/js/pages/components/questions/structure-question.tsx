@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Props } from '@/types';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { Flag, FlagOff } from 'lucide-react';
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { toast } from 'sonner';
 import NavigatorBox from '../layouts/navigator-question';
 import renderSentence from '../utils/constructQuestions';
 
@@ -15,8 +16,10 @@ const structureQuestion = forwardRef(function StructureQuestion({ onComplete, se
         toeflSubtests: idSubtest,
         section: section,
     });
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [flagged, setFlag] = useState<Record<number, boolean>>({}) || false;
+    const { flash } = usePage().props as any;
     const [openDialog, setOpenDialog] = useState(false);
     const [message, setMessage] = useState('');
 
@@ -69,12 +72,19 @@ const structureQuestion = forwardRef(function StructureQuestion({ onComplete, se
     const handleSubmit = () => {
         setIsSubmitting(true);
 
-        post('/submit-test');
-
-        onComplete();
-
-        setIsSubmitting(false);
+        post('/submit-test', {
+            onFinish: (res) => {
+                console.log('Submission status:', res);
+                setIsSubmitting(false);
+                onComplete();
+            },
+        });
     };
+
+    useEffect(() => {
+        if (flash?.success) toast.success(flash.success);
+        if (flash?.error) toast.error(flash.error);
+    }, [flash]);
 
     useImperativeHandle(ref, () => ({
         handleSubmit,

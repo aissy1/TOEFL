@@ -36,6 +36,9 @@ scripts/__pycache__/
 services/aes/__pycache__/
 services/aes/*.pyc
 
+*.onnx
+*.bin
+
 # LanguageTool cache
 services/aes/.cache/
 

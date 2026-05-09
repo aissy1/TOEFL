@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ListeningSet, Props } from '@/types';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { Flag, FlagOff } from 'lucide-react';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import NavigatorBox from '../layouts/navigator-question';
 import { useSpeech } from '../utils/TextToSpeech';
 
@@ -25,7 +26,7 @@ type PassageData = {
 // ─── Config per Part ─────────────────────────────────────────────────────────
 
 const partConfig: Record<string, { maxPlay: number; label: string }> = {
-    A: { maxPlay: 2, label: 'Part A — Short Conversation' },
+    A: { maxPlay: 1, label: 'Part A — Short Conversation' },
     B: { maxPlay: 1, label: 'Part B — Longer Conversation' },
     C: { maxPlay: 1, label: 'Part C — Talk / Lecture' },
 };
@@ -42,6 +43,7 @@ const ListeningQuestion = forwardRef(function ListeningQuestion({ onComplete, se
         section: section,
     });
 
+    const { flash } = usePage().props as any;
     const [flagged, setFlag] = useState<Record<number, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
@@ -83,17 +85,17 @@ const ListeningQuestion = forwardRef(function ListeningQuestion({ onComplete, se
         A: [
             'You will hear short conversations between two people.',
             'After each conversation, you will hear a question. Choose the best answer.',
-            'You may play the audio up to 2 times.',
+            'You can only play the audio once. Listen carefully!',
         ],
         B: [
             'You will hear longer conversations between two people.',
             'Answer all questions based on what the speakers say.',
-            'You can only play the audio once.',
+            'You can only play the audio once. Listen carefully!',
         ],
         C: [
             'You will hear a talk or lecture by one speaker.',
             'Answer all questions based on what the speaker says.',
-            'You can only play the audio once.',
+            'You can only play the audio once. Listen carefully!',
         ],
     };
 
@@ -115,8 +117,7 @@ const ListeningQuestion = forwardRef(function ListeningQuestion({ onComplete, se
         }
     }, [currentListening?.id]);
 
-    // ── Play question audio otomatis setelah phase berubah ke playing-question ─
-
+    // ── Play question audio otomatis setelah phase berubah ke playing-question
     useEffect(() => {
         console.log(phase);
         if (phase !== 'playing-question') return;
@@ -124,16 +125,6 @@ const ListeningQuestion = forwardRef(function ListeningQuestion({ onComplete, se
         speak(currentQuestion.question, () => {
             setPhase('answering');
         });
-
-        // if (!questionAudioRef.current || !currentQuestion?.question_audio_url) {
-        //     // Tidak ada audio soal → langsung ke answering
-        //     setPhase('answering');
-        //     return;
-        // }
-
-        // questionAudioRef.current.src = currentQuestion.question_audio_url;
-        // questionAudioRef.current.currentTime = 0;
-        // questionAudioRef.current.play().catch(() => setPhase('answering'));
     }, [phase, currentQuestion?.id]);
 
     // ── Handlers ─────────────────────────────────────────────────────────────
@@ -173,11 +164,6 @@ const ListeningQuestion = forwardRef(function ListeningQuestion({ onComplete, se
         setPhase('playing-question');
     };
 
-    const handleQuestionAudioEnded = () => {
-        // Setelah question audio selesai → user bisa menjawab
-        setPhase('answering');
-    };
-
     const handleNext = () => {
         const isLastInPassage = indexInPassage === questionsInCurrentPassage.length - 1;
         const isLastQuestion = data.currentQuestionIndex === flatQuestions.length - 1;
@@ -214,13 +200,23 @@ const ListeningQuestion = forwardRef(function ListeningQuestion({ onComplete, se
         if (isSubmitting) return;
         setIsSubmitting(true);
         try {
-            post('/submit-test');
-            onComplete();
+            post('/submit-test', {
+                onFinish: (res) => {
+                    console.log('Submission status:', res);
+                    setIsSubmitting(false);
+                    onComplete();
+                },
+            });
         } catch (error) {
             console.error('Error submitting test:', error);
             setIsSubmitting(false);
         }
     };
+
+    useEffect(() => {
+        if (flash?.success) toast.success(flash.success);
+        if (flash?.error) toast.error(flash.error);
+    }, [flash]);
 
     const toggleFlag = (id: number) => setFlag((prev) => ({ ...prev, [id]: !prev[id] }));
 

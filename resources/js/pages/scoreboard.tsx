@@ -53,9 +53,7 @@ const iconList = [BookOpen, TrendingUp, BarChart3, Award];
 
 export default function Scoreboard() {
     const { props } = usePage<SharedData & ScoreData>();
-    const { username, result = [], resultAttempt } = props as unknown as ScoreData;
-
-    console.log('Scoreboard Props:', props);
+    const { username, result = [] } = props as unknown as ScoreData;
 
     // Hitung total hanya dari score yang sudah complete
     const totalScore = result.reduce((sum, item) => sum + (item.raw_score ?? 0), 0);
@@ -140,7 +138,7 @@ export default function Scoreboard() {
                                 const color = colorList[index % colorList.length];
                                 const isPending = item.score_status === 'pending';
                                 const score = item.raw_score ?? 0;
-                                const level = getScoreLevel(score, item.total_questions);
+                                const level = getScoreLevel(score, item.passing_score);
 
                                 return (
                                     <Card key={item.id} className="border-0 shadow-lg transition-shadow hover:shadow-xl">
@@ -150,13 +148,13 @@ export default function Scoreboard() {
                                                 <CardTitle className="text-lg">{item.subtest.name}</CardTitle>
                                             </div>
                                             <div className="flex justify-end gap-1">
-                                                {isPending ? (
-                                                    <span className="text-sm text-gray-400 italic">Processing...</span>
+                                                {item.subtest.name === 'essay' ? (
+                                                    <div className="text-gray-400 italic">Pending...</div>
                                                 ) : (
                                                     <>
                                                         <div className="text-xl font-bold text-gray-800">{score}</div>
                                                         <span className="text-gray-400">/</span>
-                                                        <div className="text-xl text-gray-500">{item.total_questions}</div>
+                                                        <div className="text-xl text-gray-500">{item.passing_score}</div>
                                                     </>
                                                 )}
                                             </div>
@@ -167,7 +165,7 @@ export default function Scoreboard() {
                                                     <div
                                                         className={`bg-gradient-to-r ${colorMap[color]} h-2 rounded-full transition-all duration-1000 ease-out`}
                                                         style={{
-                                                            width: isPending ? '0%' : `${progressWidth(score, item.total_questions)}%`,
+                                                            width: isPending ? '0%' : `${progressWidth(score, item.passing_score)}%`,
                                                         }}
                                                     ></div>
                                                 </div>

@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Props } from '@/types';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { Flag, FlagOff } from 'lucide-react';
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { toast } from 'sonner';
 import NavigatorBox from '../layouts/navigator-question';
 import SubmissionLoading from '../utils/SubmissionLoading';
 
@@ -17,18 +18,12 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
         section: section,
     });
 
-    // console.log('Rendering WritingQuestion with questions:', questions);
+    const { flash } = usePage().props as any;
 
     const [flagged, setFlag] = useState<Record<number, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
     const [message, setMessage] = useState('');
-
-    // Handle both array and single object structure for writing section
-
-    // const flatQuestions = (questions as any[]).map((question) => ({
-    //     writingId: question.id,
-    // }));
 
     const flatQuestions = Array.isArray(questions)
         ? (questions as any[]).flatMap((writing: any) =>
@@ -38,8 +33,6 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
 
     const currentQuestion = flatQuestions[data.currentQuestionIndex];
     const currentWriting = questions.find((r) => r.id === currentQuestion.writingId)!;
-
-    // const currentWriting = Array.isArray(questions) ? (questions as any[]).find((r: any) => r.id === currentQuestion?.writingId) : (questions as any);
 
     // Safety check untuk memastikan currentWriting dan currentQuestion ada
     if (!currentQuestion || !currentWriting) {
@@ -70,8 +63,6 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
     };
 
     const handleNext = () => {
-        console.log('Current question index:', data.currentQuestionIndex);
-        console.log('question length:', flatQuestions.length);
         if (data.currentQuestionIndex < flatQuestions.length - 1) {
             setData('currentQuestionIndex', data.currentQuestionIndex + 1);
             const wordCount = getCurrentWordCount();
@@ -110,23 +101,23 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
 
         console.log('Submitting data:', data);
 
-        post('/submit-test');
-
-        onComplete();
-
-        setIsSubmitting(false);
+        post('/submit-test', {
+            onFinish: (res) => {
+                console.log('Submission status:', res);
+                setIsSubmitting(false);
+                onComplete();
+            },
+        });
     };
+
+    useEffect(() => {
+        if (flash?.success) toast.success(flash.success);
+        if (flash?.error) toast.error(flash.error);
+    }, [flash]);
 
     useImperativeHandle(ref, () => ({
         handleSubmit,
     }));
-
-    // useEffect(() => {
-    //     if (data.score !== 0) {
-    //         post('/submit-test');
-    //         onComplete();
-    //     }
-    // }, [data.score]);
 
     // Get word count for current answer
     const getCurrentWordCount = () => {

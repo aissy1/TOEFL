@@ -1,12 +1,15 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Props } from '@/types';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { Flag, FlagOff } from 'lucide-react';
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { toast } from 'sonner';
 import NavigatorBox from '../layouts/navigator-question';
 
 const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, section, questions, idSubtest }: Props, ref) {
+    const { flash } = usePage().props as any;
+
     const { data, setData, post } = useForm({
         answers: {} as Record<number, string>,
         currentQuestionIndex: 0,
@@ -70,16 +73,23 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
 
         console.log('Submitting data:', data);
 
-        post('/submit-test');
-
-        onComplete();
-
-        setIsSubmitting(false);
+        post('/submit-test', {
+            onFinish: (res) => {
+                console.log('Submission status:', res);
+                setIsSubmitting(false);
+                onComplete();
+            },
+        });
     };
 
     useImperativeHandle(ref, () => ({
         handleSubmit,
     }));
+
+    useEffect(() => {
+        if (flash?.success) toast.success(flash.success);
+        if (flash?.error) toast.error(flash.error);
+    }, [flash]);
 
     const propsNavigator = {
         props: data,

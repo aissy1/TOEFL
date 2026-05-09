@@ -172,83 +172,60 @@ class TestUnitController extends Controller
     {
         $attemptId = session('attempt_id');
         $toeflId = session('toefl_id');
-        $answeredCounts = session('answeredCounts', []);
         $toeflSubtests = $request->input('toeflSubtests');
         $section = $request->input('section');
         $answers = $request->input('answers', []);
 
-        $allSection = ToeflSubtest::where('toefl_id', $toeflId)
-            ->count();
-
+        $allSection = ToeflSubtest::where('toefl_id', $toeflId)->count();
         $subtestName = str_replace('-question', '', $section);
-
-        $subtestId = ToeflSubtest::where('id', $toeflSubtests)
-            ->value('subtest_id');
+        $subtestId = ToeflSubtest::where('id', $toeflSubtests)->value('subtest_id');
 
         switch ($section) {
             case "reading-question":
                 $score = $this->scoringService->scoreChoices($answers, $toeflSubtests, $attemptId);
                 session(['ReadingScore' => $score]);
-                $answeredCounts[$subtestName] = true;
-                session(['answeredCounts' => $answeredCounts]);
-                Log::info('submitTest', [
-                    'section' => $section,
-                    'subtestName' => $subtestName,
-                    'answeredCounts_saved' => session('answeredCounts'),
-                ]);
                 break;
             case "listening-question":
                 $score = $this->scoringService->scoreChoices($answers, $toeflSubtests, $attemptId);
                 session(['ListeningScore' => $score]);
-                $answeredCounts[$subtestName] = true;
-                session(['answeredCounts' => $answeredCounts]);
                 break;
             case "structure-question":
                 $score = $this->scoringService->scoreChoices($answers, $toeflSubtests, $attemptId);
                 session(['StructureScore' => $score]);
-                $answeredCounts[$subtestName] = true;
-                session(['answeredCounts' => $answeredCounts]);
                 break;
             case "speaking-question":
                 $score = $this->scoringService->scoreChoices($answers, $toeflSubtests, $attemptId);
                 session(['SpeakingScore' => $score]);
-                $answeredCounts[$subtestName] = true;
-                session(['answeredCounts' => $answeredCounts]);
                 break;
             case "essay-question":
                 foreach ($answers as $questionId => $answerText) {
                     EssayAnswer::updateOrCreate(
-                        [
-                            'test_attempt_id' => $attemptId,
-                            'question_id' => $questionId,
-                        ],
-                        [
-                            'answer_text' => $answerText,
-                            'word_count' => str_word_count($answerText),
-                        ]
+                        ['test_attempt_id' => $attemptId, 'question_id' => $questionId],
+                        ['answer_text' => $answerText, 'word_count' => str_word_count($answerText)]
                     );
                 }
                 $score = null;
-                $answeredCounts[$subtestName] = true;
-                session(['answeredCounts' => $answeredCounts]);
                 break;
-            // case "writing-question":
-            //     session(['WritingScore' => $score]);
-            //     // session(['AnsweredCountWriting' => true]);
-            //     break;
         }
 
-        TestScore::create([
-            'test_attempt_id' => $attemptId,
-            'subtest_id' => $subtestId,
-            'raw_score' => $score ?? 0,
-        ]);
+        // Atomic session update — tidak perlu baca dulu
+        session()->put("answeredCounts.$subtestName", true);
 
-        if (count($answeredCounts) === $allSection) {
+        if (!is_null($score ?? null)) {
+            TestScore::create([
+                'test_attempt_id' => $attemptId,
+                'subtest_id' => $subtestId,
+                'raw_score' => $score,
+            ]);
+        }
+
+        // Cek apakah semua subtest selesai
+        $answeredCounts = session('answeredCounts', []);
+        if (count($answeredCounts) >= $allSection) {
             TestAttempt::find($attemptId)->update(['finished_at' => now('Asia/Jakarta')]);
         }
 
-        return response()->json(['message' => 'Test submitted successfully']);
+        return back()->with('success', 'Your answers have been submitted successfully.');
     }
 
     public function resetTest()
