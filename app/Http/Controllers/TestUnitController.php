@@ -35,7 +35,7 @@ class TestUnitController extends Controller
         $flow = ['general'];
 
         foreach ($toeflSubtests as $item) {
-            $name = strtolower($item['subtest']['name']); // Reading → reading
+            $name = strtolower($item['subtest']['name']);
             $flow[] = $name;                // info
             $flow[] = "{$name}-question";   // question
         }
@@ -94,9 +94,11 @@ class TestUnitController extends Controller
     {
 
         $toeflId = session('toefl_id');
-        abort_if(!$toeflId, 403, 'Unauthorized access. Please start the test properly.');
-
         $username = session('username');
+
+        if (!$toeflId || !$username) {
+            return redirect()->route('home')->with('error', 'Please enter a TOEFL packet code and your credential to start the test.');
+        }
 
         $toeflSubtests = ToeflSubtest::with('subtest')
             ->where('toefl_id', $toeflId)
@@ -113,12 +115,6 @@ class TestUnitController extends Controller
                 strtolower($item['subtest']['name']) => $savedAnsweredCounts[strtolower($item['subtest']['name'])] ?? false
             ])
             ->toArray();
-
-        Log::info('subtestShow', [
-            'savedAnsweredCounts' => $savedAnsweredCounts,
-            'answeredCounts_built' => $answeredCounts,
-            'subtest_names' => collect($toeflSubtests)->pluck('subtest.name'),
-        ]);
 
         if (!in_array($section, $flow)) {
             abort(404);

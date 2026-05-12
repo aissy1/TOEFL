@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
-import { type SharedData } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 export default function Welcome() {
     const { data, setData, post, errors } = useForm({
@@ -8,11 +9,14 @@ export default function Welcome() {
         password: '',
         packetToefl: '',
     });
-    const { auth } = usePage<SharedData>().props;
+    const { flash } = usePage().props as any;
+
+    useEffect(() => {
+        if (flash?.success) toast.success(flash.success);
+        if (flash?.error) toast.error(flash.error);
+    }, [flash?.error, flash?.success]);
 
     const handleSubmit = (e: any) => {
-        console.log(data);
-
         e.preventDefault();
         if (!data.username.trim()) {
             alert('Please enter your name');

@@ -1,35 +1,30 @@
 import '../css/app.css';
 
 import { Toaster } from '@/components/ui/sonner';
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, usePage } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { toast } from 'sonner';
 import { initializeTheme } from './hooks/use-appearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+function FlashToast() {
+    const { flash } = usePage().props as {
+        flash?: { success?: string | null; error?: string | null };
+    };
+    const prev = useRef({ success: '', error: '' });
 
-function AudioNotificationPoller() {
     useEffect(() => {
-        const interval = setInterval(async () => {
-            try {
-                const res = await fetch('/admin/audio-notifications');
-                const json = await res.json();
-
-                if (json.status === 'done') {
-                    toast.success(`Audio "${json.title}" berhasil di-generate!`);
-                } else if (json.status === 'failed') {
-                    toast.error(`Gagal generate audio "${json.title}". Coba lagi.`);
-                }
-                // status 'processing' → diam saja, lanjut polling
-            } catch {
-                // silent fail — misal saat halaman login yang tidak punya route ini
-            }
-        }, 3000);
-
-        return () => clearInterval(interval);
-    }, []);
+        if (flash?.success && flash.success !== prev.current.success) {
+            toast.success(flash.success);
+            prev.current.success = flash.success;
+        }
+        if (flash?.error && flash.error !== prev.current.error) {
+            toast.error(flash.error);
+            prev.current.error = flash.error;
+        }
+    }, [flash?.success, flash?.error]);
 
     return null;
 }
@@ -43,7 +38,7 @@ createInertiaApp({
         root.render(
             <>
                 <App {...props} />
-                <AudioNotificationPoller />
+                <FlashToast />
                 <Toaster position="top-right" richColors />
             </>,
         );

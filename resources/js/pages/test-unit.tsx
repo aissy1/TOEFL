@@ -1,6 +1,8 @@
 // resources/js/pages/test-info.tsx
 import { Button } from '@/components/ui/button';
 import { Head, Link, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 import { useSpeech } from './components/utils/TextToSpeech';
 
 type InfoSection = {
@@ -47,10 +49,12 @@ export default function TestInfoPage() {
         section = 'general',
         toeflSubtests,
         nextSection,
+        flash,
     } = usePage().props as unknown as {
         section?: string;
         nextSection: string;
         toeflSubtests: any[];
+        flash?: { success?: string; error?: string };
     };
 
     // console.log('Received props:', { section, toeflSubtests, nextSection });
@@ -64,6 +68,11 @@ export default function TestInfoPage() {
 
     const { speak, cancel } = useSpeech();
     const checkAudio = async () => speak('hey is your audio working');
+
+    useEffect(() => {
+        if (flash?.success) toast.success(flash.success);
+        if (flash?.error) toast.error(flash.error);
+    }, [flash]);
 
     if (!current) {
         return (
