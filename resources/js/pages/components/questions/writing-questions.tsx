@@ -5,7 +5,7 @@ import { useForm, usePage } from '@inertiajs/react';
 import { Flag, FlagOff } from 'lucide-react';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { toast } from 'sonner';
-import NavigatorBox from '../layouts/navigator-question';
+import NavigatorBox from '../utils/navigator-question';
 import SubmissionLoading from '../utils/SubmissionLoading';
 
 const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, section, questions, idSubtest }: Props, ref) {

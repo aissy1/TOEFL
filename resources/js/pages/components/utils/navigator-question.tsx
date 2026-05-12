@@ -10,6 +10,7 @@ type NavigatorBoxProps = {
         setData: (field: string, value: any) => void;
         sectionQuestions: any[];
         flagged?: Record<number, boolean>;
+        onNavigate?: (index: number) => void;
     };
 };
 
@@ -53,6 +54,11 @@ export default function NavigatorBox({ propsNav }: NavigatorBoxProps) {
     const handleNavigateIndex = (questionIndex: number) => {
         const isSectionPerQuestion = (section: string | undefined) => section === 'speaking-question' || section === 'writing-question';
         const question = flatQuestions[questionIndex];
+
+        if (section === 'listening-question' && propsNav.onNavigate) {
+            propsNav.onNavigate(questionIndex);
+            return;
+        }
 
         if (isSectionPerQuestion(section)) {
             setData('currentQuestionIndex', questionIndex);

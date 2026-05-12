@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class GeneratePassageAudioJob implements ShouldQueue
 {
@@ -39,10 +40,25 @@ class GeneratePassageAudioJob implements ShouldQueue
         $filename = 'audio/passage_' . $this->passage->id . '.wav';
         $outputPath = storage_path('app/public/' . $filename);
 
-        // Pastikan folder ada
+
+        // check old file, delete if exists and upadate audio_url to null
+        if (Storage::disk('public')->exists($filename)) {
+            Log::info('Existing audio found, regenerating', [
+                'passage_id' => $this->passage->id,
+                'filename' => $filename
+            ]);
+
+            Storage::disk('public')->delete($filename);
+
+            $this->passage->update([
+                'audio_url' => null,
+            ]);
+        }
+
         if (!file_exists(dirname($outputPath))) {
             mkdir(dirname($outputPath), 0755, true);
         }
+
 
         $pythonPath = base_path('venv/Scripts/python.exe'); // Windows
         // $pythonPath = 'python3'; // Linux/Mac
@@ -70,9 +86,24 @@ class GeneratePassageAudioJob implements ShouldQueue
             $this->passage->update([
                 'audio_url' => Storage::url($filename),
             ]);
+
+            Cache::put(
+                "passage_audio_status_{$this->passage->id}",
+                ['status' => 'done', 'title' => $this->passage->title],
+                now()->addMinutes(5)
+            );
             Log::info('TTS audio saved', ['passage_id' => $this->passage->id]);
         } else {
             throw new \Exception('TTS generation failed: ' . $result);
         }
+    }
+
+    public function failed(\Throwable $e): void
+    {
+        Cache::put(
+            "passage_audio_status_{$this->passage->id}",
+            ['status' => 'failed', 'title' => $this->passage->title],
+            now()->addMinutes(5)
+        );
     }
 }

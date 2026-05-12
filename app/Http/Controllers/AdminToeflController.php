@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use App\Models\Toefl;
 use App\Models\Passage;
@@ -15,6 +14,10 @@ use App\Jobs\AesScoringJob;
 use App\Models\ToeflSubtest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 use function Pest\Laravel\json;
 
@@ -589,9 +592,33 @@ class AdminToeflController extends Controller
             ->with('success', 'Passage berhasil diubah');
     }
 
+    public function audioNotifications()
+    {
+        Log::info('Polling hit');
+
+        $passageIds = Passage::pluck('id');
+        Log::info('Checking passage ids', ['ids' => $passageIds]);
+
+        foreach ($passageIds as $id) {
+            $key = "passage_audio_status_{$id}";
+            $exists = Cache::has($key);
+            Log::info('Cache check', ['key' => $key, 'exists' => $exists]);
+
+            $data = Cache::pull($key);
+            if ($data) {
+                Log::info('Cache found, returning', ['data' => $data]);
+                return response()->json($data);
+            }
+        }
+
+        return response()->json(['status' => 'processing']);
+    }
+
     public function deletePassages(int $id)
     {
         Passage::where('id', $id)->delete();
+
+        Storage::disk('public')->delete('audio/passage_' . $id . '.wav');
 
         return redirect()->route('admin.questions.passage')
             ->with('success', 'Passage berhasil dihapus');

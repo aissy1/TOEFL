@@ -71,6 +71,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/admin/questions/passage/put/{id}', [AdminToeflController::class, 'updatePassages'])->name('admin.questions.passage.update');
     Route::delete('/admin/questions/passage/delete/{id}', [AdminToeflController::class, 'deletePassages'])->name('admin.questions.passage.delete');
 
+    //Passage Audio Status Route
+    Route::get('/admin/audio-notifications', [AdminToeflController::class, 'audioNotifications']);
+
     //Admin Test Attempts Management Routes
     Route::get('/admin/attempts', [AdminToeflController::class, 'getAttempts'])->name('admin.attempts');
     Route::get('/admin/attempts/toefl/{id}', [AdminToeflController::class, 'getToeflAttempts'])->name('admin.attempts.toefl');

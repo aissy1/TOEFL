@@ -3,7 +3,7 @@ import { Props } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { Flag, FlagOff } from 'lucide-react';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import NavigatorBox from '../layouts/navigator-question';
+import NavigatorBox from '../utils/navigator-question';
 import SubmissionLoading from '../utils/SubmissionLoading';
 
 const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, section, questions }: Props, ref) {

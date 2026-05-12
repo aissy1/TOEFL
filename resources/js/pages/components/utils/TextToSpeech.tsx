@@ -14,9 +14,9 @@ export function useSpeech() {
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
-        utterance.rate = 0.9; // sedikit lebih lambat
+        utterance.rate = 1; // sedikit lebih lambat
         utterance.pitch = 1;
-        utterance.volume = 0.5;
+        utterance.volume = 1;
 
         utterance.onend = () => onEnd?.();
         utterance.onerror = () => onEnd?.(); // fallback jika error

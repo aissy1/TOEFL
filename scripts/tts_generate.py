@@ -1,9 +1,10 @@
 import sys
 import json
-from tkinter import dialog
-from tkinter import dialog
-import soundfile as sf
+import random
 import numpy as np
+import soundfile as sf
+from tkinter import dialog
+from tkinter import dialog
 from kokoro_onnx import Kokoro
 
 import os
@@ -32,8 +33,8 @@ def normalize_gender(gender: str) -> str:
 
 def build_voice_pool():
     return {
-        "male": ['am_adam', 'am_fenrir', 'am_michael'],
-        "female": ['af_heart', 'af_nicole', 'af_bella']
+        "male": ['am_adam', 'am_fenrir', 'am_michael', "am_puck"],
+        "female": ['af_heart', 'af_bella', 'af_aoede', 'af_sarah']
     }
 
 
@@ -43,8 +44,8 @@ def assign_actor_voices(actors, voice_pool):
     """
     actor_voice_map = {}
 
-    male_idx = 0
-    female_idx = 0
+    # male_idx = 0
+    # female_idx = 0
 
     for actor in actors:
         actor_id = actor.get("id")
@@ -52,12 +53,8 @@ def assign_actor_voices(actors, voice_pool):
 
         voices = voice_pool.get(gender, voice_pool["male"])
 
-        if gender == "female":
-            voice = voices[female_idx % len(voices)]
-            female_idx += 1
-        else:
-            voice = voices[male_idx % len(voices)]
-            male_idx += 1
+        # pilih random voice sesuai gender
+        voice = random.choice(voices)
 
         actor_voice_map[actor_id] = voice
 
@@ -101,6 +98,7 @@ def generate(passage: dict, output_path: str):
         if not text:
             continue
 
+        # generate audio per line & set volume default
         samples, sr = kokoro.create(
             text,
             voice=voice,

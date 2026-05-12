@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Jobs\GeneratePassageAudioJob;
 use App\Models\Passage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class PassageObserver
 {

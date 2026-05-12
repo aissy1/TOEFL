@@ -107,9 +107,9 @@ export default function PassagesIndex({ passages }: props) {
                     <table className="w-full table-fixed text-sm">
                         <thead className="bg-gray-100 text-gray-700">
                             <tr>
-                                <th className="px-4 py-3 text-center">Id_Passage</th>
                                 <th className="px-4 py-3 text-center">Subtest</th>
                                 <th className="px-4 py-3 text-center">Title</th>
+                                <th className="px-4 py-3 text-center">Status</th>
                                 <th className="px-4 py-3 text-center">Action</th>
                             </tr>
                         </thead>
@@ -129,9 +129,17 @@ export default function PassagesIndex({ passages }: props) {
                                             onClick={() => handleRoute('preview', passage.id)}
                                             className="cursor-pointer truncate hover:bg-gray-100"
                                         >
-                                            <td className="px-4 py-3 text-center">{passage.id}</td>
                                             <td className="px-4 py-3 text-center">{passage.subtest_id}</td>
                                             <td className="px-4 py-3 text-center">{passage.title}</td>
+                                            <td className="px-4 py-3 text-center">
+                                                {passage.audio_url ? (
+                                                    <span className="rounded bg-green-600 px-2 py-1 text-sm font-semibold text-white">Converted</span>
+                                                ) : (
+                                                    <span className="rounded bg-yellow-100 px-2 py-1 text-sm font-semibold text-yellow-700">
+                                                        Not Converted
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td className="px-4 py-3 text-center">
                                                 <Button
                                                     onClick={(e) => {

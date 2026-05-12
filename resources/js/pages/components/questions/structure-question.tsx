@@ -5,8 +5,8 @@ import { useForm, usePage } from '@inertiajs/react';
 import { Flag, FlagOff } from 'lucide-react';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { toast } from 'sonner';
-import NavigatorBox from '../layouts/navigator-question';
 import renderSentence from '../utils/constructQuestions';
+import NavigatorBox from '../utils/navigator-question';
 
 const structureQuestion = forwardRef(function StructureQuestion({ onComplete, section, questions, idSubtest }: Props, ref) {
     const { data, setData, post } = useForm({

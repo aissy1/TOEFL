@@ -1,5 +1,0 @@
-{
-    "type": "listening",
-    "actors": [{ "id": "1", "name": "Student" }],
-    "dialog": [{ "actor_id": "1", "text": "Hi, Professor Johnson. Thanks for meeting with me. I'm having some trouble deciding on my major." }]
-}

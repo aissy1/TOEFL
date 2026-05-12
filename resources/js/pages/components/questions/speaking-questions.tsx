@@ -4,7 +4,7 @@ import { Props } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { CheckCircle, Flag, FlagOff, Mic, MicOff, Play, Square } from 'lucide-react';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import NavigatorBox from '../layouts/navigator-question';
+import NavigatorBox from '../utils/navigator-question';
 
 // Enhanced Speaking Recorder Component with auto-submit
 const SpeakingRecorder = ({
@@ -472,12 +472,12 @@ const SpeakingQuestion = forwardRef(function SpeakingQuestion({ onComplete, sect
     }
 
     return (
-        <div className="flex w-full flex-col lg:flex-row items-start justify-between gap-4 lg:gap-8">
+        <div className="flex w-full flex-col items-start justify-between gap-4 lg:flex-row lg:gap-8">
             {/* Sidebar Navigator */}
             <NavigatorBox propsNav={propsNavigator} />
 
             {/* Reading Passage */}
-            <div className="max-h-[85vh] w-full lg:w-1/3 flex-1 space-y-4 overflow-auto rounded-lg border border-gray-200 bg-white p-6 shadow-lg">
+            <div className="max-h-[85vh] w-full flex-1 space-y-4 overflow-auto rounded-lg border border-gray-200 bg-white p-6 shadow-lg lg:w-1/3">
                 <div className="flex items-center justify-between border-b border-gray-200 pb-4">
                     <h2 className="text-xl font-semibold text-gray-800">{currentSpeaking.title}</h2>
                     <div className="text-sm text-gray-500">

@@ -114,7 +114,7 @@ export default function PassagesForm({ initialData, submitUrl, method = 'post' }
         const onSuccess = async () => {
             const confirmed = await redirectDialog({
                 title: 'Success',
-                text: method === 'post' ? 'Data berhasil dibuat. Tambah data lagi?' : 'Data berhasil diperbarui. Tetap di halaman?',
+                text: method === 'post' ? 'Data created successfully. Add more data?' : 'Data updated successfully. Stay on this page?',
                 confirmText: 'Stay here',
                 cancelText: 'Back to Index',
                 icon: 'success',

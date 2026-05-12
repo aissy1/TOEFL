@@ -5,7 +5,7 @@ import { useForm, usePage } from '@inertiajs/react';
 import { Flag, FlagOff } from 'lucide-react';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { toast } from 'sonner';
-import NavigatorBox from '../layouts/navigator-question';
+import NavigatorBox from '../utils/navigator-question';
 
 const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, section, questions, idSubtest }: Props, ref) {
     const { flash } = usePage().props as any;
