@@ -667,11 +667,13 @@ class AdminToeflController extends Controller
                     'question' => $item->questions->question,
                     'answer_text' => $item->answer_text,
                     'similarity_score' => $item->similarity_score,
+                    'content_cosine' => $item->content_cosine,
                     'grammar_score' => $item->grammar_score,
                     'word_count' => $item->word_count,
                     'manual_score' => $item->manual_score,
                     'score' => $item->score,
                     'final_score' => $item->final_score,
+                    'status' => $item->aes_status,
                 ];
             });
 
@@ -715,7 +717,7 @@ class AdminToeflController extends Controller
 
         return back()->with(
             'success',
-            "Re-scoring {$answers->count()} jawaban dimulai."
+            "Starting system grading, Please wait and refresh the page after a few seconds."
         );
     }
 

@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class AesScoringJob implements ShouldQueue
 {
@@ -104,6 +105,12 @@ class AesScoringJob implements ShouldQueue
                 'aes_status' => 'completed',
                 'scored_at' => now(),
             ]);
+
+            Cache::put(
+                "Scoring Status {$this->essayAnswerId}",
+                ['status' => 'completed'],
+                now()->addMinutes(5)
+            );
 
             Log::info("AES: Answer {$answer->id} scored — " .
                 "soal_score: {$result['soal_score']}");

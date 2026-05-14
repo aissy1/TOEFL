@@ -2,9 +2,10 @@ import PageHeader from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { BookCheckIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface Subtest {
     id: number;
@@ -27,6 +28,11 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/',
     },
 ];
+
+interface flash {
+    success?: string | null;
+    error?: string | null;
+}
 
 interface user {
     name: string;
@@ -59,6 +65,7 @@ interface Toefl {
     status: string;
 }
 interface Props {
+    flash?: flash;
     user: user;
     results: TestAttempt;
     subtests: Subtest[];
@@ -73,20 +80,22 @@ interface EssayAnswers {
     test_attempt_id: number;
     question: string;
     answer_text: string;
-    similarity_score: number | null;
+    similarity_score: number | null; // score per number
+    content_cosine: number | null;
     grammar_score: number | null;
     manual_score: { expert1: number | null; expert2: number | null } | null;
     final_score_type: 'manual' | 'system' | null;
     word_count: number;
+    status: string;
 }
 
 export default function ViewAttempts({ user, results, subtests, toefl, essayAnswers }: Props) {
-    const [disabled, setDisabled] = useState(true);
-    const [processessing, setProcessing] = useState(false);
     const [graded, setGrade] = useState(false);
+    const [disabled, setDisabled] = useState(true);
+    const { flash } = usePage().props as any;
 
     // Inisialisasi form dengan data essay
-    const { data, setData, put, processing } = useForm({
+    const { data, setData, post, put, processing } = useForm({
         grades: essayAnswers.map((item) => ({
             id: item.id,
             manual_score_expert1: item.manual_score?.expert1 ?? null,
@@ -114,7 +123,16 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
 
     const handleGradeSystem = () => {
         console.log('Grading by system...');
-        router.post(route('admin.attempts.gradeSystem', { attempt: results.id }), {}, { onSuccess: () => router.reload() });
+        post(route('admin.attempts.gradeSystem', { attempt: results.id }), {
+            onSuccess: () => {
+                router.reload({
+                    only: ['essayAnswers'],
+                });
+            },
+            onError: () => {
+                toast.error('An error occurred while grading. Please try again.');
+            },
+        });
     };
 
     const handleButton = (action: string) => {
@@ -151,6 +169,46 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
     };
 
     useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        } else if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
+
+    useEffect(() => {
+        const hasProcessing = essayAnswers.some((item) => item.status === 'processing');
+
+        const comletedCount = essayAnswers.filter((item) => item.status === 'completed').length;
+
+        if (comletedCount === essayAnswers.length) {
+            toast.success('All essay answers have been graded!');
+            return;
+        }
+
+        if (!hasProcessing) return;
+
+        const interval = setInterval(() => {
+            router.reload({
+                only: ['essayAnswers'],
+            });
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [essayAnswers]);
+
+    useEffect(() => {
+        console.log(essayAnswers.map((item) => item.status));
+        if (essayAnswers.some((item) => item.status !== 'completed' || null)) {
+            // if status aes is not completed or null, then can grade
+            setGrade(false);
+        } else {
+            setGrade(true);
+        }
+        console.log('Graded state updated:', graded);
+    }, [essayAnswers]);
+
+    useEffect(() => {
         setData(
             'grades',
             essayAnswers.map((item) => ({
@@ -160,8 +218,6 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                 final_score_type: item.final_score_type ?? 'manual',
             })),
         );
-        const hasSystemScore = essayAnswers.some((item) => (item.similarity_score ?? 0) + (item.grammar_score ?? 0) > 0);
-        setGrade(hasSystemScore);
     }, [essayAnswers]);
 
     return (
@@ -227,12 +283,7 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                     <div className="flex items-center justify-between">
                         <h3 className="text-xl font-semibold">Essay Answer</h3>
                         <div className="flex items-center gap-1">
-                            {!disabled && (
-                                <Button onClick={() => handleButton('cancel')} variant="destructive" size="sm" disabled={processing}>
-                                    Cancel
-                                </Button>
-                            )}
-                            {disabled && !graded && (
+                            {!graded && (
                                 <Button
                                     onClick={handleGradeSystem}
                                     size="sm"
@@ -244,7 +295,12 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                                             : data.grades.some((g) => g.manual_score_expert1 === null || g.manual_score_expert2 === null))
                                     }
                                 >
-                                    Grade
+                                    {processing ? 'Grading...' : 'Grade'}
+                                </Button>
+                            )}
+                            {!disabled && (
+                                <Button onClick={() => handleButton('cancel')} variant="destructive" size="sm" disabled={processing}>
+                                    Cancel
                                 </Button>
                             )}
                             <Button
@@ -258,7 +314,7 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                                         : 'bg-green-500 text-white hover:bg-green-600 hover:text-white'
                                 }
                             >
-                                {processing ? 'Saving...' : disabled ? 'Grade Essay' : 'Submit Grade'}
+                                {processing && !disabled ? 'Saving...' : disabled ? 'Grade Essay' : 'Submit Grade'}
                             </Button>
                         </div>
                     </div>
@@ -266,12 +322,12 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                     <div className="flex flex-col gap-2 overflow-x-auto rounded border bg-white p-4 shadow-sm">
                         {essayAnswers.map((item, index) => {
                             const grade = data.grades[index];
-                            const systemScore = (item.similarity_score ?? 0) + (item.grammar_score ?? 0);
+                            const systemScore = item.similarity_score ?? 0;
 
                             return (
-                                <div key={item.id} className="flex w-full rounded-lg border p-4">
+                                <div key={item.id} className="flex w-full rounded-lg border p-2">
                                     {/* Left: Question & Answer */}
-                                    <div className="w-1/2">
+                                    <div className="w-1/2 px-2">
                                         <p className="font-medium">
                                             <span>Question {index + 1} : </span>
                                             {item.question}
@@ -287,10 +343,10 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                                         {/* AES Scores (selalu disabled) */}
                                         <div className="flex flex-col gap-2">
                                             <div>
-                                                <p className="text-sm font-medium">Similarity Score</p>
+                                                <p className="text-sm font-medium">Content Similarity Score</p>
                                                 <input
                                                     type="number"
-                                                    value={item.similarity_score ?? ''}
+                                                    value={item.content_cosine ? (item.content_cosine * 100).toFixed(2) : 0}
                                                     className="w-full rounded border px-2 py-1 text-sm"
                                                     placeholder="Similarity score"
                                                     disabled
@@ -298,7 +354,7 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                                                 />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium">Grammar Score</p>
+                                                <p className="text-sm font-medium">Grammar Scale</p>
                                                 <input
                                                     type="number"
                                                     value={item.grammar_score ?? ''}

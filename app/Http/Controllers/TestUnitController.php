@@ -197,7 +197,7 @@ class TestUnitController extends Controller
                 foreach ($answers as $questionId => $answerText) {
                     EssayAnswer::updateOrCreate(
                         ['test_attempt_id' => $attemptId, 'question_id' => $questionId],
-                        ['answer_text' => $answerText, 'word_count' => str_word_count($answerText)]
+                        ['answer_text' => $answerText, 'word_count' => str_word_count($answerText), 'aes_status' => 'pending']
                     );
                 }
                 $score = null;
