@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
         // ]);
         $this->call([
             UserSeeder::class,
-            // ToeflSeeder::class, // sudah include subtest master
+            ToeflSeeder::class, // subtest master
         ]);
     }
 }
