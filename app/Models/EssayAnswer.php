@@ -35,7 +35,7 @@ class EssayAnswer extends Model
 
     public function questions()
     {
-        return $this->belongsTo(questions::class, 'question_id');
+        return $this->belongsTo(Questions::class, 'question_id');
     }
     public function testAttempts()
     {

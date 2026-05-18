@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Models\Passage;
 use App\Services\questionsSubtests;
 use App\Services\scoringService;
-use App\Models\questions;
+use App\Models\Questions;
 use App\Models\TestAttempt;
 use App\Models\TestScore;
 use Inertia\Inertia;

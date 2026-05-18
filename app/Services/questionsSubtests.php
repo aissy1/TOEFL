@@ -1,13 +1,13 @@
 <?php
 
 namespace App\Services;
-use App\Models\questions;
+use App\Models\Questions;
 
 class questionsSubtests
 {
     public function getReadingQuestions(int $toeflSubtestId, int $subtest_id)
     {
-        $questions = questions::with('passage')
+        $questions = Questions::with('passage')
             ->where('toefl_subtest_id', $toeflSubtestId)
             ->where('subtest_id', $subtest_id)
             ->orderBy('order')
@@ -34,7 +34,7 @@ class questionsSubtests
     }
     public function getListeningQuestions(int $toeflSubtestId, int $subtest_id)
     {
-        $questions = questions::with('passage')
+        $questions = Questions::with('passage')
             ->where('toefl_subtest_id', $toeflSubtestId)
             ->where('subtest_id', $subtest_id)
             ->orderBy('order')
@@ -63,7 +63,7 @@ class questionsSubtests
 
     public function getStructureQuestions(int $toeflSubtestId, int $subtest_id)
     {
-        $questions = questions::with('passage')
+        $questions = Questions::with('passage')
             ->where('toefl_subtest_id', $toeflSubtestId)
             ->where('subtest_id', $subtest_id)
             ->orderBy('order')
@@ -91,7 +91,7 @@ class questionsSubtests
 
     public function getEssayQuestions(int $toeflSubtestId, int $subtest_id)
     {
-        $questions = questions::with('passage')
+        $questions = Questions::with('passage')
             ->where('toefl_subtest_id', $toeflSubtestId)
             ->where('subtest_id', $subtest_id)
             ->orderBy('order')

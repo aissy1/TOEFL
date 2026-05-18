@@ -7,7 +7,7 @@ use App\Models\Toefl;
 use App\Models\Passage;
 use App\Models\Subtest;
 use App\Models\TestScore;
-use App\Models\questions;
+use App\Models\Questions;
 use App\Models\TestAttempt;
 use App\Models\EssayAnswer;
 use App\Jobs\AesScoringJob;
@@ -348,12 +348,12 @@ class AdminToeflController extends Controller
 
         $subtest = $toeflSubtest->subtest;
 
-        $questions = questions::query()
+        $questions = Questions::query()
             ->where('toefl_subtest_id', $toeflSubtest->id)
             ->orderBy('order')
             ->get();
 
-        $totalScore = questions::query()
+        $totalScore = Questions::query()
             ->where('toefl_subtest_id', $toeflSubtest->id)
             ->sum('point');
 
@@ -372,7 +372,7 @@ class AdminToeflController extends Controller
             ->where('subtest_id', $subtestId)
             ->select('id', 'title', 'text')
             ->get();
-        $question = questions::where('id', $questionId)
+        $question = Questions::where('id', $questionId)
             ->where('toefl_subtest_id', $toeflSubtest)
             ->where('subtest_id', $subtestId)
             ->firstOrFail();
@@ -395,7 +395,7 @@ class AdminToeflController extends Controller
             ->select('id', 'title', 'text')
             ->get();
 
-        $lastOrderQuestion = questions::query()
+        $lastOrderQuestion = Questions::query()
             ->where('toefl_subtest_id', $toeflSubtest)
             ->max('order') ?? 0;
 
@@ -416,7 +416,7 @@ class AdminToeflController extends Controller
         $validated = $request->validate($this->questionRules());
 
         // Cegah order bentrok dalam subtest
-        $exists = questions::where('toefl_subtest_id', $validated['toefl_subtest_id'])
+        $exists = Questions::where('toefl_subtest_id', $validated['toefl_subtest_id'])
             ->where('order', $validated['order'])
             ->where('subtest_id', $validated['subtest_id'])
             ->exists();
@@ -427,7 +427,7 @@ class AdminToeflController extends Controller
             ]);
         }
 
-        questions::create($validated);
+        Questions::create($validated);
 
         return redirect()
             ->route('admin.questions.subtest.create', [$toefl, $toeflSubtest, $subtest])
@@ -440,7 +440,7 @@ class AdminToeflController extends Controller
             ->where('subtest_id', $subtest)
             ->select('id', 'title', 'text')
             ->get();
-        $question = questions::where('id', $id)
+        $question = Questions::where('id', $id)
             ->where('toefl_subtest_id', $toeflSubtest)
             ->where('subtest_id', $subtest)
             ->firstOrFail();
@@ -458,7 +458,7 @@ class AdminToeflController extends Controller
 
     public function updateQuestionsSubtest(Request $request, $toefl, int $toeflSubtest, int $subtest, int $id)
     {
-        $question = questions::where('id', $id)
+        $question = Questions::where('id', $id)
             ->where('toefl_subtest_id', $toeflSubtest)
             ->where('subtest_id', $subtest)
             ->firstOrFail();
@@ -467,7 +467,7 @@ class AdminToeflController extends Controller
 
         if ($request->order != $question->order) {
             // Cegah order bentrok dalam subtest
-            $exists = questions::where('toefl_subtest_id', $validated['toefl_subtest_id'])
+            $exists = Questions::where('toefl_subtest_id', $validated['toefl_subtest_id'])
                 ->where('order', $validated['order'])
                 ->where('subtest_id', $validated['subtest_id'])
                 ->exists();
@@ -488,7 +488,7 @@ class AdminToeflController extends Controller
 
     public function deleteQuestionsSubtest($toefl, $toeflSubtest, $subtest, int $id)
     {
-        questions::where('id', $id)->delete();
+        Questions::where('id', $id)->delete();
 
         return redirect()->route('admin.questions.subtest', [$toefl, $toeflSubtest, $subtest])
             ->with('success', 'Question berhasil dihapus');
