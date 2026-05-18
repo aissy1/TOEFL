@@ -60,8 +60,10 @@ class GeneratePassageAudioJob implements ShouldQueue
         }
 
 
-        $pythonPath = base_path('venv/Scripts/python.exe'); // Windows
-        // $pythonPath = 'python3'; // Linux/Mac
+        // flex for local & production python path
+        $pythonPath = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'
+            ? base_path('venv/Scripts/python.exe')
+            : base_path('venv/bin/python');
 
         $scriptPath = base_path('scripts/tts_generate.py');
         $jsonFile = storage_path('app/temp_passage_' . $this->passage->id . '.json');
