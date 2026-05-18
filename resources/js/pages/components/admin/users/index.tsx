@@ -86,9 +86,7 @@ export default function UsersIndex({ users }: Props) {
                             + Add User
                         </button>
                     }
-                >
-                    <input type="text" placeholder="Search user..." className="w-64 rounded border px-3 py-2" />
-                </PageHeader>
+                ></PageHeader>
 
                 {/* Table */}
                 <div className="overflow-x-auto rounded border bg-white">

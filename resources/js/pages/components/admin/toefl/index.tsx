@@ -133,9 +133,7 @@ export default function ToeflIndex({ toefls }: ToeflIndexProps) {
                             + Add Toefl
                         </button>
                     }
-                >
-                    <input type="text" placeholder="Search Toefl . . ." className="w-64 rounded border px-3 py-2" />
-                </PageHeader>
+                ></PageHeader>
 
                 {/* Table */}
                 <div className="overflow-x-auto rounded border bg-white">
