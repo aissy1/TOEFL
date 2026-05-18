@@ -35,6 +35,6 @@ class Subtest extends Model
      */
     public function questions()
     {
-        return $this->hasMany(Questions::class);
+        return $this->hasMany(questions::class);
     }
 }
