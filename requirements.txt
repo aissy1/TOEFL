@@ -9,7 +9,7 @@ python-dotenv==1.0.0
 
 kokoro_onnx==0.5.0
 soundfile==0.13.1
-numpy==1.26.4
+numpy==2.0.2
 onnxruntime==1.18.0
 
 # NLP / AES
