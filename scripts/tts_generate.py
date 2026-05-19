@@ -3,9 +3,8 @@ import json
 import random
 import numpy as np
 import soundfile as sf
-from tkinter import dialog
-from tkinter import dialog
 from kokoro_onnx import Kokoro
+# from tkinter import dialog
 
 import os
 
