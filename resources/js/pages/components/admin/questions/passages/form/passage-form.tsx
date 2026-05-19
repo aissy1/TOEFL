@@ -3,6 +3,7 @@ import { redirectDialog } from '@/pages/components/utils/popup-modal';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { nanoid } from 'nanoid';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 type Actor = {
     id: string;
@@ -112,6 +113,10 @@ export default function PassagesForm({ initialData, submitUrl, method = 'post' }
         const action = method === 'post' ? post : put;
 
         const onSuccess = async () => {
+            if (isListening) {
+                toast.info('Generating audio, please refresh the page after a while.', { duration: 2000 });
+            }
+
             const confirmed = await redirectDialog({
                 title: 'Success',
                 text: method === 'post' ? 'Data created successfully. Add more data?' : 'Data updated successfully. Stay on this page?',
