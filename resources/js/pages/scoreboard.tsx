@@ -36,56 +36,61 @@ interface ResultAttempt {
 interface ScoreData {
     username: string;
     result: result[];
+    essay_score: number;
+    scale_cefr: string | null;
     resultAttempt: ResultAttempt;
 }
 
-const colorList = ['blue', 'green', 'purple', 'orange'] as const;
+const colorList = ['blue', 'orange', 'purple', 'green'] as const;
 type Color = (typeof colorList)[number];
 
 const colorMap: Record<Color, string> = {
     blue: 'from-blue-500 to-blue-600',
-    green: 'from-green-500 to-green-600',
     purple: 'from-purple-500 to-purple-600',
     orange: 'from-orange-500 to-orange-600',
+    green: 'from-green-500 to-green-600',
 };
 
 const iconList = [BookOpen, TrendingUp, BarChart3, Award];
 
 export default function Scoreboard() {
     const { props } = usePage<SharedData & ScoreData>();
-    const { username, result = [] } = props as unknown as ScoreData;
+    const { username, result = [], essay_score, scale_cefr } = props as unknown as ScoreData;
+
+    const totalSubtest = result.reduce((sum, item) => sum + (item.raw_score !== null ? 1 : 0), 0);
+
+    console.log(totalSubtest);
 
     // Hitung total hanya dari score yang sudah complete
-    const totalScore = result.reduce((sum, item) => sum + (item.raw_score ?? 0), 0);
+    const totalScore = result.reduce((sum, item) => sum + (item.scaled_score !== null ? Math.round((item.scaled_score / totalSubtest) * 10) : 0), 0);
     const maxTotalScore = result.reduce((sum, item) => sum + item.passing_score, 0);
 
     // Cek apakah masih ada yang pending (essay AES)
-    const hasPending = result.some((item) => item.score_status === 'pending');
+    const hasPending = essay_score === null;
 
     const progressWidth = (score: number, max: number) => {
         if (!max) return 0;
         return Math.min((score / max) * 100, 100);
     };
 
-    const getScoreLevel = (score: number, max: number) => {
-        const percentage = (score / max) * 100;
-        if (percentage >= 90) return { level: 'Excellent', color: 'text-green-600', bgColor: 'bg-green-100' };
-        if (percentage >= 80) return { level: 'Very Good', color: 'text-blue-600', bgColor: 'bg-blue-100' };
-        if (percentage >= 70) return { level: 'Good', color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
-        if (percentage >= 60) return { level: 'Fair', color: 'text-orange-600', bgColor: 'bg-orange-100' };
-        return { level: 'Need Improvement', color: 'text-red-600', bgColor: 'bg-red-100' };
+    const getLabelCefr = (scale_cefr: string | null) => {
+        switch (scale_cefr) {
+            case 'C2':
+                return { scale_cefr: 'C2', level: 'Proficient' };
+            case 'C1':
+                return { scale_cefr: 'C1', level: 'Advanced' };
+            case 'B2':
+                return { scale_cefr: 'B2', level: 'Upper-Intermediate' };
+            case 'B1':
+                return { scale_cefr: 'B1', level: 'Intermediate' };
+            case 'A2':
+                return { scale_cefr: 'A2', level: 'Elementary' };
+            case 'A1':
+                return { scale_cefr: 'A1', level: 'Beginner' };
+            default:
+                return { scale_cefr: scale_cefr, level: scale_cefr };
+        }
     };
-
-    const getTotalScoreLevel = () => {
-        const percentage = (totalScore / maxTotalScore) * 100;
-        if (percentage >= 90) return { level: 'Outstanding', color: 'text-green-600', bgColor: 'bg-green-100' };
-        if (percentage >= 80) return { level: 'Excellent', color: 'text-blue-600', bgColor: 'bg-blue-100' };
-        if (percentage >= 70) return { level: 'Good', color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
-        if (percentage >= 60) return { level: 'Fair', color: 'text-orange-600', bgColor: 'bg-orange-100' };
-        return { level: 'Need Improvement', color: 'text-red-600', bgColor: 'bg-red-100' };
-    };
-
-    const overallLevel = getTotalScoreLevel();
 
     return (
         <>
@@ -111,17 +116,11 @@ export default function Scoreboard() {
                             <CardHeader className="pb-2 text-center">
                                 <CardTitle className="text-xl font-bold">Overall Score</CardTitle>
                                 <CardDescription className="text-blue-100">
-                                    {username ? `Results for ${username}` : 'Your Test Results'}
+                                    {username ? `Results for ${username} without essay score` : 'Your Test Results'}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="text-center">
-                                <div className="mb-2 text-6xl font-bold">
-                                    {hasPending ? <span className="text-4xl italic opacity-80">Calculating...</span> : totalScore}
-                                </div>
-                                <div className="mb-4 text-xl">out of {maxTotalScore}</div>
-                                <div className="inline-flex items-center rounded-full border border-white/20 bg-white/20 px-4 py-2">
-                                    <span className="font-semibold text-white">{hasPending ? 'Awaiting essay score' : overallLevel.level}</span>
-                                </div>
+                                <div className="mb-2 text-6xl font-bold">{totalScore}</div>
                                 <div className="mt-4 h-3 rounded-full bg-white/20">
                                     <div
                                         className="h-3 rounded-full bg-white transition-all duration-1000 ease-out"
@@ -131,58 +130,54 @@ export default function Scoreboard() {
                             </CardContent>
                         </Card>
 
+                        {/* Essay Scores Grid */}
+                        <Card className="border-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-xl">
+                            <CardHeader className="pb-2 text-center">
+                                <CardTitle className="text-xl font-bold">Essay Score</CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-center">
+                                <div className="mb-2 text-6xl font-bold">
+                                    {hasPending ? <span className="text-4xl italic opacity-80">Calculating...</span> : essay_score}
+                                </div>
+                                <div className="inline-flex items-center rounded-full border border-white/20 bg-white/20 px-4 py-2">
+                                    <span className="font-semibold text-white">
+                                        {hasPending
+                                            ? 'Awaiting essay score'
+                                            : getLabelCefr(scale_cefr).scale_cefr + ' - ' + getLabelCefr(scale_cefr).level}
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+
                         {/* Section Scores Grid */}
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div className="grid gap-4 lg:grid-cols-3">
                             {result.map((item, index) => {
                                 const Icon = iconList[index % iconList.length];
                                 const color = colorList[index % colorList.length];
-                                const isPending = item.score_status === 'pending';
-                                const score = item.raw_score ?? 0;
-                                const level = getScoreLevel(score, item.passing_score);
 
                                 return (
-                                    <Card key={item.id} className="border-0 shadow-lg transition-shadow hover:shadow-xl">
-                                        <CardHeader>
-                                            <div className="flex items-center gap-2">
-                                                <Icon className="h-5 w-5 text-gray-500" />
-                                                <CardTitle className="text-lg">{item.subtest.name}</CardTitle>
-                                            </div>
-                                            <div className="flex justify-end gap-1">
-                                                {item.subtest.name === 'essay' ? (
-                                                    <div className="text-gray-400 italic">Pending...</div>
-                                                ) : (
-                                                    <>
-                                                        <div className="text-xl font-bold text-gray-800">{score}</div>
-                                                        <span className="text-gray-400">/</span>
-                                                        <div className="text-xl text-gray-500">{item.passing_score}</div>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="space-y-3">
-                                                <div className="h-2 rounded-full bg-gray-200">
-                                                    <div
-                                                        className={`bg-gradient-to-r ${colorMap[color]} h-2 rounded-full transition-all duration-1000 ease-out`}
-                                                        style={{
-                                                            width: isPending ? '0%' : `${progressWidth(score, item.passing_score)}%`,
-                                                        }}
-                                                    ></div>
+                                    item.subtest.name !== 'essay' && (
+                                        <Card key={item.id} className="border-0 shadow-lg transition-shadow hover:shadow-xl">
+                                            <CardHeader>
+                                                <div className="flex items-center gap-2">
+                                                    <Icon className="h-5 w-5 text-gray-500" />
+                                                    <CardTitle className="text-lg">{item.subtest.name}</CardTitle>
                                                 </div>
-                                                {isPending ? (
-                                                    <div className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-600">
-                                                        ⏳ Sedang diproses
+                                                <div className="flex justify-center gap-1">
+                                                    <div className="text-xl font-bold text-gray-800">{item.scaled_score}</div>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-3">
+                                                    <div className="h-2 rounded-full bg-gray-200">
+                                                        <div
+                                                            className={`bg-gradient-to-r ${colorMap[color]} h-2 w-full rounded-full transition-all duration-1000 ease-out`}
+                                                        ></div>
                                                     </div>
-                                                ) : (
-                                                    <div
-                                                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${level.bgColor} ${level.color}`}
-                                                    >
-                                                        {level.level}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    )
                                 );
                             })}
                         </div>

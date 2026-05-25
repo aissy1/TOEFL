@@ -45,6 +45,16 @@ class TestUnitController extends Controller
         return $flow;
     }
 
+    private function checkAttempt(string $username, int $toeflId)
+    {
+        $userId = User::where('name', $username)->value('id');
+
+        return TestAttempt::where('user_id', $userId)
+            ->where('toefl_id', $toeflId)
+            ->latest()
+            ->first();
+    }
+
     public function ThrowSession(Request $request)
     {
         $request->validate([
@@ -72,21 +82,29 @@ class TestUnitController extends Controller
             return redirect()->back()->withErrors(['packetToefl' => 'Packet Toefl is invalid or inactive.']);
         }
 
-        TestAttempt::create([
-            'user_id' => $account->id,
-            'toefl_id' => $toefl->id,
-            'started_at' => now('Asia/Jakarta'),
-        ]);
+        $oldAttempt = $this->checkAttempt($username, $toefl->id);
 
-        $attempt = TestAttempt::where('user_id', $account->id)
-            ->where('toefl_id', $toefl->id)
-            ->latest()
-            ->first();
+        if ($oldAttempt) {
+            // dd($attempt);
+            session([
+                'username' => $username,
+                'toefl_id' => $toefl->id,
+                'attempt_id' => $oldAttempt->id,
+                'status' => 'finished',
+            ]);
+            return redirect()->route('scoreboard', [$oldAttempt->id]);
+        } else {
+            $attempt = TestAttempt::create([
+                'user_id' => $account->id,
+                'toefl_id' => $toefl->id,
+                'started_at' => now('Asia/Jakarta'),
+            ]);
 
-        // Simpan data ke session
-        session(['username' => $username, 'toefl_id' => $toefl->id, 'attempt_id' => $attempt->id]);
+            // create session
+            session(['username' => $username, 'toefl_id' => $toefl->id, 'attempt_id' => $attempt->id, 'status' => 'progress',]);
 
-        return redirect()->route('test.show', ['section' => 'general']);
+            return redirect()->route('test.show', ['section' => 'general']);
+        }
     }
 
 
@@ -99,6 +117,9 @@ class TestUnitController extends Controller
         if (!$toeflId || !$username) {
             return redirect()->route('home')->with('error', 'Please enter a TOEFL packet code and your credential to start the test.');
         }
+
+        // check attempts user
+
 
         $toeflSubtests = ToeflSubtest::with('subtest')
             ->where('toefl_id', $toeflId)
@@ -179,18 +200,24 @@ class TestUnitController extends Controller
         switch ($section) {
             case "reading-question":
                 $score = $this->scoringService->scoreChoices($answers, $toeflSubtests, $attemptId);
+                $scaledScore = $this->scoringService->scaleScore($score, $toeflSubtests);
                 session(['ReadingScore' => $score]);
                 break;
             case "listening-question":
                 $score = $this->scoringService->scoreChoices($answers, $toeflSubtests, $attemptId);
+                $scaledScore = $this->scoringService->scaleScore($score, $toeflSubtests);
+
                 session(['ListeningScore' => $score]);
                 break;
             case "structure-question":
                 $score = $this->scoringService->scoreChoices($answers, $toeflSubtests, $attemptId);
+                $scaledScore = $this->scoringService->scaleScore($score, $toeflSubtests);
+
                 session(['StructureScore' => $score]);
                 break;
             case "speaking-question":
                 $score = $this->scoringService->scoreChoices($answers, $toeflSubtests, $attemptId);
+                $scaledScore = $this->scoringService->scaleScore($score, $toeflSubtests);
                 session(['SpeakingScore' => $score]);
                 break;
             case "essay-question":
@@ -201,6 +228,7 @@ class TestUnitController extends Controller
                     );
                 }
                 $score = null;
+                $scaledScore = null;
                 break;
         }
 
@@ -212,6 +240,7 @@ class TestUnitController extends Controller
                 'test_attempt_id' => $attemptId,
                 'subtest_id' => $subtestId,
                 'raw_score' => $score,
+                'scaled_score' => $scaledScore,
             ]);
         }
 
@@ -219,6 +248,7 @@ class TestUnitController extends Controller
         $answeredCounts = session('answeredCounts', []);
         if (count($answeredCounts) >= $allSection) {
             TestAttempt::find($attemptId)->update(['finished_at' => now('Asia/Jakarta')]);
+            session(['status' => 'finished']);
         }
 
         return back()->with('success', 'Your answers have been submitted successfully.');
@@ -234,15 +264,22 @@ class TestUnitController extends Controller
 
     public function scoreboard()
     {
-
-
         $username = session('username');
         $toeflId = session('toefl_id');
         $attemptId = session('attempt_id');
+        $status = session('status');
+
+        if (!$toeflId || !$username) {
+            return redirect()->route('home')->with('error', 'Please enter a TOEFL packet code and your credential to start the test.');
+        }
 
         $resultAttempt = TestAttempt::with('scores')
             ->where('id', $attemptId)
             ->where('toefl_id', $toeflId)
+            ->first();
+
+        $essayAnswers = EssayAnswer::where('test_attempt_id', $attemptId)
+            ->get('final_score')
             ->first();
 
         $toeflSubtest = ToeflSubtest::with('subtest')
@@ -250,9 +287,18 @@ class TestUnitController extends Controller
             ->orderBy('order')
             ->get();
 
+
+        $scaleCEFR = match (true) {
+            $essayAnswers?->final_score === null => null,
+            $essayAnswers?->final_score >= 76 => 'B2',
+            $essayAnswers?->final_score >= 51 => 'B1',
+            $essayAnswers?->final_score >= 26 => 'A2',
+            $essayAnswers?->final_score <= 25 => 'A1',
+        };
+
         $answeredSubtests = session('answeredCounts', []);
 
-        if (count($answeredSubtests) !== count($toeflSubtest)) {
+        if (count($answeredSubtests) !== count($toeflSubtest) && $status !== 'finished') {
             return redirect()->route('test.show', ['section' => 'general'])
                 ->with('error', 'Please complete all sections before viewing the scoreboard.');
         }
@@ -281,6 +327,8 @@ class TestUnitController extends Controller
 
         return Inertia::render('scoreboard', [
             'result' => $result,
+            'essay_score' => $essayAnswers?->final_score,
+            'scale_cefr' => $scaleCEFR,
             'username' => $username
         ]);
     }

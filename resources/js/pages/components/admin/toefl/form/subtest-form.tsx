@@ -20,7 +20,7 @@ export default function SubtestForm({ masters, value, onChange }: SubtestFormPro
                     order: value.length + 1,
                     duration_minutes: 30,
                     total_questions: 40,
-                    passing_score: 60,
+                    passing_score: 40,
                 },
             ]);
         }
@@ -57,7 +57,7 @@ export default function SubtestForm({ masters, value, onChange }: SubtestFormPro
                                 <th className="px-3 py-2">Order</th>
                                 <th className="px-3 py-2">Duration (min)</th>
                                 <th className="px-3 py-2">Total Questions</th>
-                                <th className="px-3 py-2">Passing Score</th>
+                                <th className="px-3 py-2">Max Score</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -149,7 +149,6 @@ def get_grammar_scale(error_ratio: float) -> tuple:
     Error ratio = jumlah error / jumlah kata
     Lebih proporsional dari error count karena
     mempertimbangkan panjang jawaban
-    (Crossley, 2020)
     """
     if error_ratio == 0:
         return 4, "Sangat Baik"
@@ -222,18 +221,17 @@ def calculate_grammar_score(student_answer: str) -> dict:
 # ════════════════════════════════════════════════════════════
 
 def calculate_soal_score(
-    content_scale: int,
-    grammar_scale: int
+        cosine_similarity: int,
+        error_ratio: int
 ) -> float:
-    """
-    Skor per soal berdasarkan rubrik:
-    Skor = (Content Scale + Grammar Scale) / 8 × 100
 
-    Maksimum: (4 + 4) / 8 × 100 = 100
-    Minimum:  (0 + 0) / 8 × 100 = 0
-    """
-    total = content_scale + grammar_scale
-    score = (total / 8) * 100
+    content_weight = 0.7
+    grammar_weight = 0.3
+
+    grammar_accuracy = max(0, 1 - error_ratio)
+
+    score = ((cosine_similarity * content_weight) +
+             (grammar_accuracy * grammar_weight)) * 100
     return round(score, 1)
 
 
@@ -279,12 +277,30 @@ def score_essay(
     word_count = count_words(student_answer)
     if word_count < min_words:
         return {
-            "status": "rejected",
+            "status": "completed",
             "message": (
                 f"Jawaban terlalu pendek ({word_count} kata). "
                 f"Minimum {min_words} kata."
             ),
             "word_count": word_count,
+
+            "content": {
+                "cosine_similarity": 0,
+                "scale": 0,
+                "category": "Tidak Relevan",
+            },
+
+            "grammar": {
+                "error_count": 0,
+                "word_count": word_count,
+                "error_ratio": 0,
+                "error_pct": 0,
+                "scale": 0,
+                "category": "Tidak Baik",
+                "errors": [],
+            },
+
+            "soal_score": 0,
         }
 
     # Content scoring
@@ -298,8 +314,8 @@ def score_essay(
 
     # Soal score
     soal_score = calculate_soal_score(
-        content["scale"],
-        grammar["scale"]
+        content["cosine_similarity"],
+        grammar["error_ratio"]
     )
 
     return {

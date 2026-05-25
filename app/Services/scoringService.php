@@ -35,4 +35,14 @@ class scoringService
 
         return $score;
     }
+
+    public function scaleScore(int $score, int $toeflSubtestId): int
+    {
+        $passingScore = ToeflSubtest::find($toeflSubtestId)->passing_score ?? 0;
+
+        //formula scale score 31 + (raw/max-score × (68 - 31))
+        $score = 31 + ($score / $passingScore) * 37;
+
+        return $score; // Pastikan tidak melebihi passing score
+    }
 }

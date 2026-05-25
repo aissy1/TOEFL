@@ -72,18 +72,6 @@ class AesScoringJob implements ShouldQueue
 
             $result = $response->json();
 
-            // Jika jawaban ditolak (terlalu pendek)
-            if ($result['status'] === 'rejected') {
-                $answer->update([
-                    'aes_status' => 'failed',
-                    'aes_error_message' => $result['message'],
-                    'word_count' => $result['word_count'] ?? 0,
-                ]);
-                Log::info("AES: Answer {$answer->id} rejected — " .
-                    $result['message']);
-                return;
-            }
-
             // Simpan hasil scoring
             $answer->update([
                 // Content

@@ -12,6 +12,7 @@ class TestScore extends Model
         'test_attempt_id',
         'subtest_id',
         'raw_score',
+        'scaled_score',
     ];
     public function subtest()
     {

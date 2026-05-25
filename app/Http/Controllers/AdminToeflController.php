@@ -699,6 +699,13 @@ class AdminToeflController extends Controller
         ]);
     }
 
+    public function deleteUserAttempts(int $id)
+    {
+        TestAttempt::with('scores')->where('id', $id)->delete();
+
+        return back()->with('success', 'Test attempt deleted successfully');
+    }
+
     public function gradeSystem(int $attempt)
     {
         $answers = EssayAnswer::where('test_attempt_id', $attempt)

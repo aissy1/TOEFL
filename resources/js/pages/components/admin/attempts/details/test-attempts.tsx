@@ -1,9 +1,12 @@
 import PageHeader from '@/components/page-header';
 import Pagination from '@/components/pagination';
+import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
+import { confirmDialog } from '@/pages/components/utils/popup-modal';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { BookCheckIcon } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -52,8 +55,44 @@ export default function TestAttemptsDetails({ toefl, attempts }: props) {
         return new Date(date).toLocaleString();
     };
 
-    const viewAttempt = (id: number, userId: number) => {
-        router.visit(`/admin/attempts/toefl/${id}/${userId}`);
+    const handleDelete = async (id: number, userId: number) => {
+        const confirmed = await confirmDialog({
+            title: 'Delete attempt?',
+            text: 'User attempt will be permanently removed.',
+            confirmText: 'Delete',
+            icon: 'warning',
+        });
+
+        if (!confirmed) return;
+
+        router.delete(`delete/${id}/${userId}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'Deleted!',
+                    text: 'User Attempt has been deleted.',
+                    icon: 'success',
+                });
+            },
+            onError: () => {
+                Swal.fire({
+                    title: 'Failed!',
+                    text: 'Failed to delete user.',
+                    icon: 'error',
+                });
+            },
+        });
+    };
+
+    const handleRoute = (mode: 'view' | 'delete', id: number, userId: number) => {
+        switch (mode) {
+            case 'view':
+                router.visit(`/admin/attempts/toefl/${id}/${userId}`);
+                break;
+            case 'delete':
+                handleDelete(id, userId);
+                break;
+        }
     };
 
     return (
@@ -72,6 +111,7 @@ export default function TestAttemptsDetails({ toefl, attempts }: props) {
                                 <th className="px-4 py-3 text-center">Started</th>
                                 <th className="px-4 py-3 text-center">Finished</th>
                                 <th className="px-4 py-3 text-center">Status</th>
+                                <th className="px-4 py-3 text-center">Action</th>
                             </tr>
                         </thead>
 
@@ -87,7 +127,10 @@ export default function TestAttemptsDetails({ toefl, attempts }: props) {
                             {attempts.data.map((item) => (
                                 <tr
                                     key={item.id}
-                                    onClick={() => viewAttempt(item.id, item.user.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRoute('view', item.id, item.user.id);
+                                    }}
                                     className="cursor-pointer transition hover:bg-blue-50/40"
                                 >
                                     <td className="px-4 py-3 font-medium text-gray-800">{item.user.name}</td>
@@ -100,6 +143,17 @@ export default function TestAttemptsDetails({ toefl, attempts }: props) {
                                         ) : (
                                             <span className="rounded bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-700">In Progress</span>
                                         )}
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                        <Button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRoute('delete', item.id, item.user.id);
+                                            }}
+                                            className="rounded bg-red-500 px-3 py-1 text-sm text-white hover:cursor-pointer hover:bg-red-700"
+                                        >
+                                            Delete
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}

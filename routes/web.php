@@ -78,6 +78,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/admin/attempts', [AdminToeflController::class, 'getAttempts'])->name('admin.attempts');
     Route::get('/admin/attempts/toefl/{id}', [AdminToeflController::class, 'getToeflAttempts'])->name('admin.attempts.toefl');
     Route::get('/admin/attempts/toefl/{id}/{userId}', [AdminToeflController::class, 'viewUserAttempts'])->name('admin.attempts.toefl.view');
+    Route::delete('/admin/attempts/toefl/delete/{id}/{userId}', [AdminToeflController::class, 'deleteUserAttempts'])->name('admin.attempts.toefl.delete');
     Route::put('/admin/attempts/toefl/{id}/{userId}/{attempt}', [AdminToeflController::class, 'grade'])->name('admin.attempts.toefl.grade');
     Route::post('/admin/attempts/toefl/{attempt}', [AdminToeflController::class, 'gradeSystem'])->name('admin.attempts.gradeSystem');
 });

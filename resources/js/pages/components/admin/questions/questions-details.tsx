@@ -28,13 +28,13 @@ interface Props {
     subtest: {
         id: number;
         name: string;
-        total_questions?: number;
+        total_questions: number;
         score?: number;
     };
     toeflSubtest: {
         id: number;
         subtest_id: number;
-        total_questions?: number;
+        total_questions: number;
         passing_score?: number;
     };
     questions: Question[];
@@ -102,12 +102,14 @@ export default function QuestionsDetails({ toefl, subtest, toeflSubtest, questio
                     icon={<LibraryBig size={20} />}
                     action={
                         <>
-                            <button
-                                onClick={() => handleRoute('create')}
-                                className="cursor-pointer rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700"
-                            >
-                                + Add Question
-                            </button>
+                            {questions.length < toeflSubtest.total_questions && (
+                                <button
+                                    onClick={() => handleRoute('create')}
+                                    className="cursor-pointer rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700"
+                                >
+                                    + Add Question
+                                </button>
+                            )}
                             <button
                                 onClick={() => handleRoute('indexPassage')}
                                 className="cursor-pointer rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"

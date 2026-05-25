@@ -109,10 +109,16 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
     };
 
     const totalRawScore = results.scores.reduce((sum, s) => sum + (s.raw_score ?? 0), 0);
-    const totalMaxScore = results.scores.reduce((sum, s) => {
+    const maxRawScore = results.scores.reduce((sum, s) => {
         const subtest = subtests.find((z) => z.id === s.subtest_id);
         return sum + (subtest ? subtest.passing_score : 0);
     }, 0);
+
+    const totalScaledScore = results.scores.reduce((sum, s) => {
+        const subtest = subtests.find((z) => z.id === s.subtest_id);
+        return sum + (subtest && s.scaled_score ? Math.round((s.scaled_score / results.scores.length) * 10) : 0);
+    }, 0);
+    const maxScaledScore = Math.round(((results.scores.length * 68) / 3) * 10);
 
     // Update field per item
     const updateGrade = (index: number, field: string, value: any) => {
@@ -122,7 +128,6 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
     };
 
     const handleGradeSystem = () => {
-        console.log('Grading by system...');
         post(route('admin.attempts.gradeSystem', { attempt: results.id }), {
             onSuccess: () => {
                 router.reload({
@@ -177,35 +182,35 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
     }, [flash]);
 
     useEffect(() => {
-        const hasProcessing = essayAnswers.some((item) => item.status === 'processing');
+        if (essayAnswers.length > 0) {
+            const hasProcessing = essayAnswers.some((item) => item.status === 'processing');
 
-        const comletedCount = essayAnswers.filter((item) => item.status === 'completed').length;
+            const comletedCount = essayAnswers.filter((item) => item.status === 'completed').length;
 
-        if (comletedCount === essayAnswers.length) {
-            toast.success('All essay answers have been graded!');
-            return;
+            if (comletedCount === essayAnswers.length) {
+                toast.success('All essay answers have been graded!');
+                return;
+            }
+
+            if (!hasProcessing) return;
+
+            const interval = setInterval(() => {
+                router.reload({
+                    only: ['essayAnswers'],
+                });
+            }, 5000);
+
+            return () => clearInterval(interval);
         }
-
-        if (!hasProcessing) return;
-
-        const interval = setInterval(() => {
-            router.reload({
-                only: ['essayAnswers'],
-            });
-        }, 5000);
-
-        return () => clearInterval(interval);
     }, [essayAnswers]);
 
     useEffect(() => {
-        console.log(essayAnswers.map((item) => item.status));
         if (essayAnswers.some((item) => item.status !== 'completed' || null)) {
             // if status aes is not completed or null, then can grade
             setGrade(false);
         } else {
             setGrade(true);
         }
-        console.log('Graded state updated:', graded);
     }, [essayAnswers]);
 
     useEffect(() => {
@@ -241,10 +246,17 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                         <h2 className="mt-1 text-3xl font-bold text-blue-700">{user.email}</h2>
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-gray-500">Total Score</p>
+                        <p className="text-sm font-medium text-gray-500">Total Raw Score</p>
                         <h2 className="mt-1 text-3xl font-bold text-blue-700">
                             {totalRawScore}
-                            <span className="ml-2 text-lg font-normal text-gray-500">/ {totalMaxScore}</span>
+                            <span className="ml-2 text-lg font-normal text-gray-500">/ {maxRawScore}</span>
+                        </h2>
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-gray-500">Total Score</p>
+                        <h2 className="mt-1 text-3xl font-bold text-blue-700">
+                            {totalScaledScore}
+                            <span className="ml-2 text-lg font-normal text-gray-500">/ {maxScaledScore}</span>
                         </h2>
                     </div>
                 </div>
@@ -279,147 +291,151 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                 </div>
 
                 {/* Essay Answer Scores */}
-                <div className="mt-4 flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-semibold">Essay Answer</h3>
-                        <div className="flex items-center gap-1">
-                            {!graded && (
+                {essayAnswers.length > 0 && (
+                    <div className="mt-4 flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-xl font-semibold">Essay Answer</h3>
+                            <div className="flex items-center gap-1">
+                                {!graded && (
+                                    <Button
+                                        onClick={handleGradeSystem}
+                                        size="sm"
+                                        variant="outline"
+                                        disabled={
+                                            processing ||
+                                            (disabled
+                                                ? false
+                                                : data.grades.some((g) => g.manual_score_expert1 === null || g.manual_score_expert2 === null))
+                                        }
+                                    >
+                                        {processing ? 'Grading...' : 'Grade'}
+                                    </Button>
+                                )}
+                                {!disabled && (
+                                    <Button onClick={() => handleButton('cancel')} variant="destructive" size="sm" disabled={processing}>
+                                        Cancel
+                                    </Button>
+                                )}
                                 <Button
-                                    onClick={handleGradeSystem}
-                                    size="sm"
+                                    onClick={() => handleButton(disabled ? 'edit' : 'submit')}
+                                    disabled={processing}
                                     variant="outline"
-                                    disabled={
-                                        processing ||
-                                        (disabled
-                                            ? false
-                                            : data.grades.some((g) => g.manual_score_expert1 === null || g.manual_score_expert2 === null))
+                                    size="sm"
+                                    className={
+                                        disabled
+                                            ? 'bg-blue-600 text-white hover:bg-blue-800 hover:text-white'
+                                            : 'bg-green-500 text-white hover:bg-green-600 hover:text-white'
                                     }
                                 >
-                                    {processing ? 'Grading...' : 'Grade'}
+                                    {processing && !disabled ? 'Saving...' : disabled ? 'Grade Essay' : 'Submit Grade'}
                                 </Button>
-                            )}
-                            {!disabled && (
-                                <Button onClick={() => handleButton('cancel')} variant="destructive" size="sm" disabled={processing}>
-                                    Cancel
-                                </Button>
-                            )}
-                            <Button
-                                onClick={() => handleButton(disabled ? 'edit' : 'submit')}
-                                disabled={processing}
-                                variant="outline"
-                                size="sm"
-                                className={
-                                    disabled
-                                        ? 'bg-blue-600 text-white hover:bg-blue-800 hover:text-white'
-                                        : 'bg-green-500 text-white hover:bg-green-600 hover:text-white'
-                                }
-                            >
-                                {processing && !disabled ? 'Saving...' : disabled ? 'Grade Essay' : 'Submit Grade'}
-                            </Button>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2 overflow-x-auto rounded border bg-white p-4 shadow-sm">
+                            {essayAnswers.map((item, index) => {
+                                const grade = data.grades[index];
+                                const systemScore = item.similarity_score ?? 0;
+
+                                return (
+                                    <div key={item.id} className="flex w-full rounded-lg border p-2">
+                                        {/* Left: Question & Answer */}
+                                        <div className="w-1/2 px-2">
+                                            <p className="font-medium">
+                                                <span>Question {index + 1} : </span>
+                                                {item.question}
+                                            </p>
+                                            <p className="text-sm text-gray-500">
+                                                Answer Length : <span>{item.word_count} words</span>
+                                            </p>
+                                            <p className="mt-2">{item.answer_text}</p>
+                                        </div>
+
+                                        {/* Right: Scores */}
+                                        <div className="grid w-1/2 grid-cols-2 gap-4">
+                                            {/* AES Scores (selalu disabled) */}
+                                            <div className="flex flex-col gap-2">
+                                                <div>
+                                                    <p className="text-sm font-medium">Content Similarity Score</p>
+                                                    <input
+                                                        type="number"
+                                                        value={item.content_cosine ? (item.content_cosine * 100).toFixed(2) : 0}
+                                                        className="w-full rounded border px-2 py-1 text-sm"
+                                                        placeholder="Similarity score"
+                                                        disabled
+                                                        readOnly
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium">Grammar Scale</p>
+                                                    <input
+                                                        type="number"
+                                                        value={item.grammar_score ?? ''}
+                                                        className="w-full rounded border px-2 py-1 text-sm"
+                                                        placeholder="Grammar score"
+                                                        disabled
+                                                        readOnly
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Manual Scores */}
+                                            <div className="flex flex-col gap-2">
+                                                <div>
+                                                    <p className="text-sm font-medium">Manual Score 1</p>
+                                                    <input
+                                                        type="number"
+                                                        value={grade.manual_score_expert1 ?? ''}
+                                                        onChange={(e) =>
+                                                            updateGrade(index, 'manual_score_expert1', e.target.value ? Number(e.target.value) : null)
+                                                        }
+                                                        className="w-full rounded border px-2 py-1 text-sm disabled:bg-gray-50"
+                                                        placeholder="Enter manual score"
+                                                        disabled={disabled}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium">Manual Score 2</p>
+                                                    <input
+                                                        type="number"
+                                                        value={grade.manual_score_expert2 ?? ''}
+                                                        onChange={(e) =>
+                                                            updateGrade(index, 'manual_score_expert2', e.target.value ? Number(e.target.value) : null)
+                                                        }
+                                                        className="w-full rounded border px-2 py-1 text-sm disabled:bg-gray-50"
+                                                        placeholder="Enter manual score"
+                                                        disabled={disabled}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Final Score */}
+                                            <div>
+                                                <p className="text-sm font-medium">Final Score</p>
+                                                <select
+                                                    value={grade.final_score_type}
+                                                    onChange={(e) => updateGrade(index, 'final_score_type', e.target.value)}
+                                                    className="w-full rounded border px-2 py-1 text-sm disabled:bg-gray-50"
+                                                    disabled={disabled}
+                                                >
+                                                    <option value="manual">
+                                                        Manual -{' '}
+                                                        {grade.manual_score_expert1 && grade.manual_score_expert2
+                                                            ? ((Number(grade.manual_score_expert1) + Number(grade.manual_score_expert2)) / 2).toFixed(
+                                                                  0,
+                                                              )
+                                                            : 'N/A'}
+                                                    </option>
+                                                    <option value="system">System - {systemScore > 0 ? systemScore : 'N/A'}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
-
-                    <div className="flex flex-col gap-2 overflow-x-auto rounded border bg-white p-4 shadow-sm">
-                        {essayAnswers.map((item, index) => {
-                            const grade = data.grades[index];
-                            const systemScore = item.similarity_score ?? 0;
-
-                            return (
-                                <div key={item.id} className="flex w-full rounded-lg border p-2">
-                                    {/* Left: Question & Answer */}
-                                    <div className="w-1/2 px-2">
-                                        <p className="font-medium">
-                                            <span>Question {index + 1} : </span>
-                                            {item.question}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                            Answer Length : <span>{item.word_count} words</span>
-                                        </p>
-                                        <p className="mt-2">{item.answer_text}</p>
-                                    </div>
-
-                                    {/* Right: Scores */}
-                                    <div className="grid w-1/2 grid-cols-2 gap-4">
-                                        {/* AES Scores (selalu disabled) */}
-                                        <div className="flex flex-col gap-2">
-                                            <div>
-                                                <p className="text-sm font-medium">Content Similarity Score</p>
-                                                <input
-                                                    type="number"
-                                                    value={item.content_cosine ? (item.content_cosine * 100).toFixed(2) : 0}
-                                                    className="w-full rounded border px-2 py-1 text-sm"
-                                                    placeholder="Similarity score"
-                                                    disabled
-                                                    readOnly
-                                                />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium">Grammar Scale</p>
-                                                <input
-                                                    type="number"
-                                                    value={item.grammar_score ?? ''}
-                                                    className="w-full rounded border px-2 py-1 text-sm"
-                                                    placeholder="Grammar score"
-                                                    disabled
-                                                    readOnly
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Manual Scores */}
-                                        <div className="flex flex-col gap-2">
-                                            <div>
-                                                <p className="text-sm font-medium">Manual Score 1</p>
-                                                <input
-                                                    type="number"
-                                                    value={grade.manual_score_expert1 ?? ''}
-                                                    onChange={(e) =>
-                                                        updateGrade(index, 'manual_score_expert1', e.target.value ? Number(e.target.value) : null)
-                                                    }
-                                                    className="w-full rounded border px-2 py-1 text-sm disabled:bg-gray-50"
-                                                    placeholder="Enter manual score"
-                                                    disabled={disabled}
-                                                />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium">Manual Score 2</p>
-                                                <input
-                                                    type="number"
-                                                    value={grade.manual_score_expert2 ?? ''}
-                                                    onChange={(e) =>
-                                                        updateGrade(index, 'manual_score_expert2', e.target.value ? Number(e.target.value) : null)
-                                                    }
-                                                    className="w-full rounded border px-2 py-1 text-sm disabled:bg-gray-50"
-                                                    placeholder="Enter manual score"
-                                                    disabled={disabled}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Final Score */}
-                                        <div>
-                                            <p className="text-sm font-medium">Final Score</p>
-                                            <select
-                                                value={grade.final_score_type}
-                                                onChange={(e) => updateGrade(index, 'final_score_type', e.target.value)}
-                                                className="w-full rounded border px-2 py-1 text-sm disabled:bg-gray-50"
-                                                disabled={disabled}
-                                            >
-                                                <option value="manual">
-                                                    Manual -{' '}
-                                                    {grade.manual_score_expert1 && grade.manual_score_expert2
-                                                        ? ((Number(grade.manual_score_expert1) + Number(grade.manual_score_expert2)) / 2).toFixed(0)
-                                                        : 'N/A'}
-                                                </option>
-                                                <option value="system">System - {systemScore > 0 ? systemScore : 'N/A'}</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
+                )}
             </div>
         </AppLayout>
     );

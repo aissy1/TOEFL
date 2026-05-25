@@ -121,6 +121,7 @@ export default function UserForm({ initialData, submitUrl, method = 'post' }: Pr
                     required
                     onChange={(e) => setData('password', e.target.value)}
                 />
+                {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
             </div>
 
             {/* Password Confirmation */}
@@ -133,6 +134,7 @@ export default function UserForm({ initialData, submitUrl, method = 'post' }: Pr
                     required
                     onChange={(e) => setData('password_confirmation', e.target.value)}
                 />
+                {errors.password_confirmation && <p className="text-sm text-red-500">{errors.password_confirmation}</p>}
             </div>
 
             <div className="flex justify-end gap-3">

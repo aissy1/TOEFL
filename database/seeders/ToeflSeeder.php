@@ -41,6 +41,7 @@ class ToeflSeeder extends Seeder
                 "Use the grammar intuition that is most commonly used in formal English."
             ],
         ]);
+
         Subtest::create([
             'name' => 'structure',
             'slug' => 'Structure & Written Expression',
@@ -53,6 +54,7 @@ class ToeflSeeder extends Seeder
                 "Use the grammar intuition that is most commonly used in formal English."
             ],
         ]);
+
         Subtest::create([
             'name' => 'essay',
             'slug' => 'essay',
