@@ -82,9 +82,10 @@ interface EssayAnswers {
     answer_text: string;
     similarity_score: number | null; // score per number
     content_cosine: number | null;
+    content_scale: number | null;
     grammar_score: number | null;
     manual_score: { expert1: number | null; expert2: number | null } | null;
-    final_score_type: 'manual' | 'system' | null;
+    final_score_type: 'manual' | 'system' | '';
     word_count: number;
     status: string;
 }
@@ -100,7 +101,7 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
             id: item.id,
             manual_score_expert1: item.manual_score?.expert1 ?? null,
             manual_score_expert2: item.manual_score?.expert2 ?? null,
-            final_score_type: item.final_score_type ?? 'manual',
+            final_score_type: item.final_score_type ?? '',
         })),
     });
 
@@ -324,7 +325,7 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                                     className={
                                         disabled
                                             ? 'bg-blue-600 text-white hover:bg-blue-800 hover:text-white'
-                                            : 'bg-green-500 text-white hover:bg-green-600 hover:text-white'
+                                            : 'bg-green-600 text-white hover:bg-green-800 hover:text-white'
                                     }
                                 >
                                     {processing && !disabled ? 'Saving...' : disabled ? 'Grade Essay' : 'Submit Grade'}
@@ -360,6 +361,17 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                                                     <input
                                                         type="number"
                                                         value={item.content_cosine ? (item.content_cosine * 100).toFixed(2) : 0}
+                                                        className="w-full rounded border px-2 py-1 text-sm"
+                                                        placeholder="Similarity score"
+                                                        disabled
+                                                        readOnly
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium">Content Similarity Scale</p>
+                                                    <input
+                                                        type="number"
+                                                        value={item.content_scale ? item.content_scale : '-'}
                                                         className="w-full rounded border px-2 py-1 text-sm"
                                                         placeholder="Similarity score"
                                                         disabled
@@ -418,6 +430,10 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                                                     className="w-full rounded border px-2 py-1 text-sm disabled:bg-gray-50"
                                                     disabled={disabled}
                                                 >
+                                                    <option value="" disabled>
+                                                        Select final score
+                                                    </option>
+                                                    <option value="system">System - {systemScore > 0 ? systemScore : 'N/A'}</option>
                                                     <option value="manual">
                                                         Manual -{' '}
                                                         {grade.manual_score_expert1 && grade.manual_score_expert2
@@ -426,7 +442,6 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                                                               )
                                                             : 'N/A'}
                                                     </option>
-                                                    <option value="system">System - {systemScore > 0 ? systemScore : 'N/A'}</option>
                                                 </select>
                                             </div>
                                         </div>

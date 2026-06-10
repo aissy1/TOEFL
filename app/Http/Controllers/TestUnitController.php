@@ -115,7 +115,7 @@ class TestUnitController extends Controller
         $username = session('username');
 
         if (!$toeflId || !$username) {
-            return redirect()->route('home')->with('error', 'Please enter a TOEFL packet code and your credential to start the test.');
+            return redirect()->route('home')->with('error', 'Please enter a packet code and your credential to start the test.');
         }
 
         // check attempts user
@@ -244,6 +244,7 @@ class TestUnitController extends Controller
             ]);
         }
 
+
         // Cek apakah semua subtest selesai
         $answeredCounts = session('answeredCounts', []);
         if (count($answeredCounts) >= $allSection) {
@@ -270,7 +271,7 @@ class TestUnitController extends Controller
         $status = session('status');
 
         if (!$toeflId || !$username) {
-            return redirect()->route('home')->with('error', 'Please enter a TOEFL packet code and your credential to start the test.');
+            return redirect()->route('home')->with('error', 'Please enter a packet code and your credential to start the test.');
         }
 
         $resultAttempt = TestAttempt::with('scores')

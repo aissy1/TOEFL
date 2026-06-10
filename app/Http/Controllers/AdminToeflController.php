@@ -669,6 +669,7 @@ class AdminToeflController extends Controller
                     'answer_text' => $item->answer_text,
                     'similarity_score' => $item->similarity_score,
                     'content_cosine' => $item->content_cosine,
+                    'content_scale' => $item->content_scale,
                     'grammar_score' => $item->grammar_score,
                     'word_count' => $item->word_count,
                     'manual_score' => $item->manual_score,

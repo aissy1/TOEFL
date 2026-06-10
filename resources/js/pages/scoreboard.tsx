@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { type SharedData } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { Award, BarChart3, BookOpen, Home, TrendingUp } from 'lucide-react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { Award, BarChart3, BookOpen, TrendingUp } from 'lucide-react';
 
 interface Subtest {
     id: number;
@@ -59,8 +59,6 @@ export default function Scoreboard() {
 
     const totalSubtest = result.reduce((sum, item) => sum + (item.raw_score !== null ? 1 : 0), 0);
 
-    console.log(totalSubtest);
-
     // Hitung total hanya dari score yang sudah complete
     const totalScore = result.reduce((sum, item) => sum + (item.scaled_score !== null ? Math.round((item.scaled_score / totalSubtest) * 10) : 0), 0);
     const maxTotalScore = result.reduce((sum, item) => sum + item.passing_score, 0);
@@ -90,6 +88,10 @@ export default function Scoreboard() {
             default:
                 return { scale_cefr: scale_cefr, level: scale_cefr };
         }
+    };
+
+    const resetTest = () => {
+        router.post('/reset-test', { replace: true });
     };
 
     return (
@@ -185,14 +187,13 @@ export default function Scoreboard() {
                         {/* Action Buttons */}
                         <div className="flex flex-wrap justify-center gap-4">
                             <Button
-                                asChild
                                 size="lg"
+                                onClick={() => {
+                                    resetTest();
+                                }}
                                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                             >
-                                <Link href="/reset-test" method="post">
-                                    <Home className="mr-2 h-4 w-4" />
-                                    Back to Dashboard
-                                </Link>
+                                Back to Dashboard
                             </Button>
                         </div>
                     </div>

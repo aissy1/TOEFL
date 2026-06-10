@@ -66,10 +66,10 @@ export default function Welcome() {
 
                             {/* Title */}
                             <h1 className="mb-2 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl">
-                                Welcome to TOEFL Test
+                                English Proficiency Test
                             </h1>
                             <p className="text-xs font-medium text-gray-600 sm:text-sm">
-                                Enter your name and choose a TOEFL to begin your assessment
+                                Enter your credential and code packet test to begin your assessment
                             </p>
                         </div>
 
@@ -77,7 +77,7 @@ export default function Welcome() {
                         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                             <div className="space-y-2">
                                 <label htmlFor="toefl" className="block text-sm font-semibold text-gray-700">
-                                    Packet Toefl
+                                    Packet Test Code
                                 </label>
                                 <div className="relative">
                                     <input
@@ -86,7 +86,7 @@ export default function Welcome() {
                                         id="toefl"
                                         value={data.packetToefl}
                                         onChange={(e) => setData('packetToefl', e.target.value)}
-                                        placeholder="Enter your packet toefl code . . ."
+                                        placeholder="Enter your packet test code . . ."
                                         className="w-full rounded-xl border border-gray-200 bg-white/50 px-4 py-3 text-gray-900 placeholder-gray-500 backdrop-blur-sm transition-all duration-200 hover:bg-white/70 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                         required
                                     />
@@ -95,7 +95,7 @@ export default function Welcome() {
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="username" className="block text-sm font-semibold text-gray-700">
-                                    Full Name
+                                    Username
                                 </label>
                                 <div className="relative">
                                     <input
@@ -104,7 +104,7 @@ export default function Welcome() {
                                         id="username"
                                         value={data.username}
                                         onChange={(e) => setData('username', e.target.value)}
-                                        placeholder="Enter your full name . . ."
+                                        placeholder="Enter your username . . ."
                                         className="w-full rounded-xl border border-gray-200 bg-white/50 px-4 py-3 text-gray-900 placeholder-gray-500 backdrop-blur-sm transition-all duration-200 hover:bg-white/70 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                         required
                                     />
