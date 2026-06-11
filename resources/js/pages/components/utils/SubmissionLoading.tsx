@@ -1,19 +1,19 @@
-import { useEffect, useState } from 'react';
 import { Award, Clock, FileText } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface SubmissionLoadingProps {
     isVisible: boolean;
     message?: string;
 }
 
-export default function SubmissionLoading({ isVisible, message = "Processing your essay..." }: SubmissionLoadingProps) {
+export default function SubmissionLoading({ isVisible, message = 'Processing your essay...' }: SubmissionLoadingProps) {
     const [dots, setDots] = useState('');
 
     useEffect(() => {
         if (!isVisible) return;
 
         const interval = setInterval(() => {
-            setDots(prev => {
+            setDots((prev) => {
                 if (prev === '...') return '';
                 return prev + '.';
             });
@@ -25,38 +25,37 @@ export default function SubmissionLoading({ isVisible, message = "Processing you
     if (!isVisible) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-8 max-w-md mx-4 text-center shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+            <div className="mx-4 max-w-md rounded-xl bg-white p-8 text-center shadow-2xl">
                 <div className="mb-6">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                        <FileText className="w-8 h-8 text-blue-600 animate-pulse" />
+                    <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+                        <FileText className="h-8 w-8 animate-pulse text-blue-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">Evaluating Your Essay</h3>
+                    <h3 className="mb-2 text-xl font-bold text-gray-800">Evaluating Your Essay</h3>
                     <p className="text-gray-600">
-                        {message}{dots}
+                        {message}
+                        {dots}
                     </p>
                 </div>
-                
+
                 <div className="space-y-3">
                     <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
                         <div className="flex items-center space-x-2">
-                            <Clock className="w-4 h-4" />
+                            <Clock className="h-4 w-4" />
                             <span>Analyzing content</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                            <Award className="w-4 h-4" />
+                            <Award className="h-4 w-4" />
                             <span>Calculating score</span>
                         </div>
                     </div>
-                    
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+
+                    <div className="h-2 w-full rounded-full bg-gray-200">
+                        <div className="h-2 animate-pulse rounded-full bg-blue-600" style={{ width: '60%' }}></div>
                     </div>
                 </div>
-                
-                <p className="text-xs text-gray-400 mt-4">
-                    This may take a few moments...
-                </p>
+
+                <p className="mt-4 text-xs text-gray-400">This may take a few moments...</p>
             </div>
         </div>
     );

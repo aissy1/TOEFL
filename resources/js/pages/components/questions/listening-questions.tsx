@@ -514,8 +514,11 @@ const ListeningQuestion = forwardRef(function ListeningQuestion({ onComplete, se
                                 Previous
                             </Button>
 
-                            <div className="text-xs text-gray-500">
-                                {answeredCount} of {flatQuestions.length} answered
+                            <div className="text-center text-xs text-gray-500">
+                                <p>
+                                    {answeredCount} of {flatQuestions.length}
+                                </p>
+                                <p>answered</p>
                             </div>
 
                             <Button
@@ -560,7 +563,7 @@ const ListeningQuestion = forwardRef(function ListeningQuestion({ onComplete, se
 
             {/* Dialog Konfirmasi Submit */}
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                <DialogContent className="max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+                <DialogContent className="max-w-sm md:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle className="flex items-center space-x-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">

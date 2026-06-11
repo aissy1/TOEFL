@@ -183,7 +183,10 @@ const structureQuestion = forwardRef(function StructureQuestion({ onComplete, se
                             </Button>
 
                             <div className="text-xs text-gray-500">
-                                {answeredCount} of {flatQuestions.length} answered
+                                <p>
+                                    {answeredCount} of {flatQuestions.length}
+                                </p>
+                                <p>answered</p>
                             </div>
 
                             <Button

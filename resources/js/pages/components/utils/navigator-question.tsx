@@ -80,7 +80,7 @@ export default function NavigatorBox({ propsNav }: NavigatorBoxProps) {
             <div className="text-sm font-medium">{username}</div>
             <div className="text-xs text-gray-500">{sectionActive} navigator</div>
 
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(32px,1fr))] place-items-start gap-1 text-sm">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(36px,1fr))] place-items-start gap-1 text-sm">
                 {flatQuestions.map((q, i) => {
                     const isFlagged = flagged[q.id];
                     const isActive = props.currentQuestionIndex === i;

@@ -224,7 +224,7 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                                     key={`question-${(currentQuestion as any)?.id}`}
                                     name={`question-${(currentQuestion as any)?.id}`}
                                     className="min-h-[300px] w-full resize-none rounded-lg border border-gray-300 p-4 text-sm leading-relaxed transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                                    placeholder="Write your essay here. Express your opinion clearly and support it with specific examples. Remember to aim for at least 400 words..."
+                                    placeholder="Write your essay here. Express your opinion clearly and support it with specific examples. Remember to aim for at least 20 words..."
                                     value={data.answers[(currentQuestion as any)?.id] || ''}
                                     onChange={(e) => handleAnswerChange((currentQuestion as any)?.id, e.target.value)}
                                 />
@@ -252,12 +252,10 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
                                 </Button>
 
                                 <div className="text-center text-xs text-gray-500">
-                                    <div>
-                                        {answeredCount} of {flatQuestions.length} answered
-                                    </div>
-                                    <div className="text-xs text-gray-400">
-                                        Question {data.currentQuestionIndex + 1} of {flatQuestions.length}
-                                    </div>
+                                    <p>
+                                        {answeredCount} of {flatQuestions.length}
+                                    </p>
+                                    <p>answered</p>
                                 </div>
 
                                 <Button

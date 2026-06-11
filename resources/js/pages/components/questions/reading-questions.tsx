@@ -185,7 +185,10 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
                             </Button>
 
                             <div className="text-xs text-gray-500">
-                                {answeredCount} of {flatQuestions.length} answered
+                                <p>
+                                    {answeredCount} of {flatQuestions.length}
+                                </p>
+                                <p>answered</p>
                             </div>
 
                             <Button
