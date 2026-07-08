@@ -153,7 +153,7 @@ class AesScoringJob implements ShouldQueue
                 'kategori' => $kategori,
             ]);
 
-        TestScore::createdOrUpdate(
+        TestScore::updateOrCreate(
             ['test_attempt_id' => $testAttemptId, 'subtest_id' => 4],
             ['raw_score' => $totalScore]
         );
