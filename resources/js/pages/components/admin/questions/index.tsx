@@ -90,9 +90,12 @@ export default function QuestionsIndex({ toefls }: QuestionIndexProps) {
                                             className="cursor-pointer border-t hover:bg-gray-50"
                                             onClick={() => setOpen(isOpen ? null : toefl.id)}
                                         >
-                                            <td className="flex items-center gap-2 px-4 py-3 font-medium">
-                                                {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                                                {toefl.name}
+                                            <td className="px-4 py-3 font-medium">
+                                                <div className="flex items-center gap-2">
+                                                    {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+
+                                                    <span>{toefl.name}</span>
+                                                </div>
                                             </td>
                                             <td className="px-4 py-3 text-center">{toefl.toefl_subtests_count}</td>
                                             <td className="px-4 py-3 text-center">

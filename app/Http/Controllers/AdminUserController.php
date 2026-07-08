@@ -14,8 +14,10 @@ class AdminUserController extends Controller
     {
         $users = User::query()
             ->select('id', 'name', 'email', 'role', 'created_at')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at', 'asc')
+            ->paginate(10)
+            ->withQueryString();
+
         return Inertia::render('components/admin/users/index', [
             'users' => $users,
         ]);

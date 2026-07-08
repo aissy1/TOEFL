@@ -57,7 +57,7 @@ export default function Scoreboard() {
     const { props } = usePage<SharedData & ScoreData>();
     const { username, result = [], essay_score, scale_cefr } = props as unknown as ScoreData;
 
-    const totalSubtest = result.reduce((sum, item) => sum + (item.raw_score !== null ? 1 : 0), 0);
+    const totalSubtest = result.reduce((sum, item) => sum + (item.scaled_score !== null ? 1 : 0), 0);
 
     // Hitung total hanya dari score yang sudah complete
     const totalScore = result.reduce((sum, item) => sum + (item.scaled_score !== null ? Math.round((item.scaled_score / totalSubtest) * 10) : 0), 0);
@@ -68,7 +68,9 @@ export default function Scoreboard() {
 
     const progressWidth = (score: number, max: number) => {
         if (!max) return 0;
-        return Math.min((score / max) * 100, 100);
+        const percentage = (score / max) * 100;
+
+        return Math.max(0, Math.min(percentage, 100));
     };
 
     const getLabelCefr = (scale_cefr: string | null) => {
@@ -124,10 +126,12 @@ export default function Scoreboard() {
                             <CardContent className="text-center">
                                 <div className="mb-2 text-6xl font-bold">{totalScore}</div>
                                 <div className="mt-4 h-3 rounded-full bg-white/20">
-                                    <div
-                                        className="h-3 rounded-full bg-white transition-all duration-1000 ease-out"
-                                        style={{ width: `${progressWidth(totalScore, maxTotalScore)}%` }}
-                                    ></div>
+                                    <div className="h-3 w-full overflow-hidden rounded-full bg-purple-100">
+                                        <div
+                                            className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-sky-400 to-blue-300 shadow-[0_0_12px_rgba(125,211,252,.5)] transition-all duration-1000"
+                                            style={{ width: `${progressWidth(totalScore, maxTotalScore)}%` }}
+                                        />
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

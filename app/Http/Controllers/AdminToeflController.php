@@ -2,27 +2,99 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
-use App\Models\Toefl;
-use App\Models\Passage;
-use App\Models\Subtest;
-use App\Models\TestScore;
-use App\Models\Questions;
-use App\Models\TestAttempt;
-use App\Models\EssayAnswer;
 use App\Jobs\AesScoringJob;
+use App\Models\EssayAnswer;
+use App\Models\Passage;
+use App\Models\Questions;
+use App\Models\Subtest;
+use App\Models\TestAttempt;
+use App\Models\TestScore;
+use App\Models\Toefl;
 use App\Models\ToeflSubtest;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
-use function Pest\Laravel\json;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class AdminToeflController extends Controller
 {
+    public function dashboard()
+    {
+        $summary = [
+            'total_toefls' => Toefl::count(),
+            'active_toefls' => Toefl::where('status', 'active')->count(),
+            'total_subtests' => Subtest::count(),
+            'total_questions' => Questions::count(),
+            'total_passages' => Passage::count(),
+            'total_attempts' => TestAttempt::count(),
+            'total_users' => User::where('role', 'user')->count(),
+        ];
+
+        $toefls = Toefl::query()
+            ->select('id', 'name', 'code', 'status', 'created_at')
+            ->with([
+                'toeflSubtests' => function ($query) {
+                    $query
+                        ->select('id', 'toefl_id', 'subtest_id', 'order', 'duration_minutes', 'total_questions', 'passing_score')
+                        ->with(['subtest:id,name,slug'])
+                        ->withCount('questions')
+                        ->orderBy('order');
+                },
+            ])
+            ->withCount('toeflSubtests')
+            ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->latest()
+            ->get()
+            ->map(function ($toefl) {
+                $seededQuestions = $toefl->toeflSubtests->sum('questions_count');
+                $expectedQuestions = $toefl->toeflSubtests->sum('total_questions');
+
+                return [
+                    'id' => $toefl->id,
+                    'name' => $toefl->name,
+                    'code' => $toefl->code,
+                    'status' => $toefl->status,
+                    'created_at' => $toefl->created_at,
+                    'toefl_subtests_count' => $toefl->toefl_subtests_count,
+                    'seeded_questions' => $seededQuestions,
+                    'expected_questions' => $expectedQuestions,
+                    'completion_rate' => $expectedQuestions > 0 ? round(($seededQuestions / $expectedQuestions) * 100) : 0,
+                    'subtests' => $toefl->toeflSubtests->map(fn($item) => [
+                        'id' => $item->id,
+                        'name' => $item->subtest?->name ?? '-',
+                        'slug' => $item->subtest?->slug ?? '-',
+                        'order' => $item->order,
+                        'duration_minutes' => $item->duration_minutes,
+                        'total_questions' => $item->total_questions,
+                        'seeded_questions' => $item->questions_count,
+                        'passing_score' => $item->passing_score,
+                    ])->values(),
+                ];
+            });
+
+        $subtests = Subtest::query()
+            ->select('id', 'name', 'slug', 'order')
+            ->withCount(['questions', 'toeflSubtests'])
+            ->orderBy('order')
+            ->get();
+
+        $questionTypes = Questions::query()
+            ->select('question_type', DB::raw('count(*) as total'))
+            ->groupBy('question_type')
+            ->orderBy('question_type')
+            ->get();
+
+        return Inertia::render('components/admin/dashboard/index', [
+            'summary' => $summary,
+            'toefls' => $toefls,
+            'subtests' => $subtests,
+            'questionTypes' => $questionTypes,
+        ]);
+    }
+
     private function questionRules(): array
     {
         return [
@@ -43,6 +115,7 @@ class AdminToeflController extends Controller
             'point' => 'required|integer|min:1',
         ];
     }
+
     private function validateListeningPayload(array $payload): void
     {
         if (!isset($payload['actors']) || count($payload['actors']) < 1) {
@@ -74,10 +147,12 @@ class AdminToeflController extends Controller
             ->orderBy('status', 'asc')
             ->orderBy('created_at', 'desc')
             ->get();
+
         return Inertia::render('components/admin/toefl/index', [
             'toefls' => $toefl,
         ]);
     }
+
     public function create()
     {
         return Inertia::render('components/admin/toefl/form/create-toefl', [
@@ -127,6 +202,7 @@ class AdminToeflController extends Controller
         $toeflSubtests = Toefl::with('toeflSubtests')->findOrFail($id);
 
         $subtestMaster = Subtest::select('id', 'name')->get();
+
         return Inertia::render('components/admin/toefl/form/edit-toefl', [
             'toefl' => $toefl,
             'toeflSubtests' => $toeflSubtests,
@@ -174,10 +250,10 @@ class AdminToeflController extends Controller
 
             if ($subtestsWithoutQuestions->isNotEmpty()) {
                 $names = $subtestsWithoutQuestions->map(fn($s) => $s->subtest->name)->join(', ');
+
                 return back()->withErrors(['status' => "Subtests missing questions: {$names}."]);
             }
         }
-
 
         DB::transaction(function () use ($validated, $id) {
             $toefl = Toefl::findOrFail($id);
@@ -244,7 +320,7 @@ class AdminToeflController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Data retrieved successfully',
-            'data' => $toefl
+            'data' => $toefl,
         ], 200);
     }
 
@@ -255,6 +331,7 @@ class AdminToeflController extends Controller
             ->select('id', 'name', 'slug', 'order')
             ->orderBy('id', 'asc')
             ->get();
+
         return Inertia::render('components/admin/subtest/index', [
             'subtests' => $subtests,
         ]);
@@ -283,6 +360,7 @@ class AdminToeflController extends Controller
     public function editSubtest(int $id)
     {
         $subtest = Subtest::findOrFail($id);
+
         return Inertia::render('components/admin/subtest/form/edit-form', [
             'subtest' => $subtest,
         ]);
@@ -324,17 +402,16 @@ class AdminToeflController extends Controller
         $toefls = Toefl::with([
             'toeflSubtests.subtest' => function ($q) {
                 $q->withCount('questions');
-            }
+            },
         ])
             ->withCount('toeflSubtests')
             ->orderBy('created_at', 'desc')
             ->get();
 
         return Inertia::render('components/admin/questions/index', [
-            'toefls' => $toefls
+            'toefls' => $toefls,
         ]);
     }
-
 
     public function getQuestionsSubtest(int $toeflId, int $toeflSubtest, int $subtestId)
     {
@@ -351,7 +428,7 @@ class AdminToeflController extends Controller
         $questions = Questions::query()
             ->where('toefl_subtest_id', $toeflSubtest->id)
             ->orderBy('order')
-            ->get();
+            ->paginate(10);
 
         $totalScore = Questions::query()
             ->where('toefl_subtest_id', $toeflSubtest->id)
@@ -379,9 +456,9 @@ class AdminToeflController extends Controller
 
         return Inertia::render('components/admin/questions/form/preview-form', [
             'context' => [
-                "toefl" => $toeflId,
-                "toeflSubtest" => $toeflSubtest,
-                "subtest" => $subtestId
+                'toefl' => $toeflId,
+                'toeflSubtest' => $toeflSubtest,
+                'subtest' => $subtestId,
             ],
             'passages' => $passages,
             'questions' => $question,
@@ -395,18 +472,18 @@ class AdminToeflController extends Controller
             ->select('id', 'title', 'text')
             ->get();
 
-        $lastOrderQuestion = Questions::query()
+        $nextOrderQuestion = (Questions::query()
             ->where('toefl_subtest_id', $toeflSubtest)
-            ->max('order') ?? 0;
+            ->max('order') ?? 0) + 1;
 
         return Inertia::render('components/admin/questions/form/create-form', [
             'context' => [
-                "toefl" => $toeflId,
-                "toeflSubtest" => $toeflSubtest,
-                "subtest" => $subtestId
+                'toefl' => $toeflId,
+                'toeflSubtest' => $toeflSubtest,
+                'subtest' => $subtestId,
             ],
             'passages' => $passages,
-            'lastQuestion' => (int) $lastOrderQuestion,
+            'lastQuestion' => (int) $nextOrderQuestion,
         ]);
     }
 
@@ -447,9 +524,9 @@ class AdminToeflController extends Controller
 
         return Inertia::render('components/admin/questions/form/edit-form', [
             'context' => [
-                "toefl" => $toefl,
-                "toeflSubtest" => $toeflSubtest,
-                "subtest" => $subtest
+                'toefl' => $toefl,
+                'toeflSubtest' => $toeflSubtest,
+                'subtest' => $subtest,
             ],
             'passages' => $passages,
             'questions' => $question,
@@ -493,8 +570,6 @@ class AdminToeflController extends Controller
         return redirect()->route('admin.questions.subtest', [$toefl, $toeflSubtest, $subtest])
             ->with('success', 'Question berhasil dihapus');
     }
-
-
 
     // Manage Passages
     public function getPassages()
@@ -542,9 +617,10 @@ class AdminToeflController extends Controller
             ->get();
 
         return Inertia::render('components/admin/questions/passages/form/create-form', [
-            'subtests' => $Subtests
+            'subtests' => $Subtests,
         ]);
     }
+
     public function storePassages(Request $request)
     {
         $validated = $request->validate([
@@ -573,7 +649,7 @@ class AdminToeflController extends Controller
 
         return Inertia::render('components/admin/questions/passages/form/edit-form', [
             'passages' => $passages,
-            'subtests' => $Subtests
+            'subtests' => $Subtests,
         ]);
     }
 
@@ -608,6 +684,7 @@ class AdminToeflController extends Controller
             $data = Cache::pull($key);
             if ($data) {
                 Log::info('Cache found, returning', ['data' => $data]);
+
                 return response()->json($data);
             }
         }
@@ -634,6 +711,7 @@ class AdminToeflController extends Controller
             'toefls' => $toefls,
         ]);
     }
+
     public function getToeflAttempts(int $id)
     {
         $toefl = Toefl::findOrFail($id);
@@ -648,6 +726,7 @@ class AdminToeflController extends Controller
             'attempts' => $attempts,
         ]);
     }
+
     public function viewUserAttempts(int $id, int $userId)
     {
         $result = TestAttempt::with('scores')
@@ -726,7 +805,7 @@ class AdminToeflController extends Controller
 
         return back()->with(
             'success',
-            "Starting system grading, Please wait and refresh the page after a few seconds."
+            'Starting system grading, Please wait and refresh the page after a few seconds.'
         );
     }
 
@@ -750,7 +829,7 @@ class AdminToeflController extends Controller
 
             $finalScore = $grade['final_score_type'] === 'manual'
                 ? $manualAvg
-                : ($answer->similarity_score + $answer->grammar_score);
+                : ($answer->similarity_score ?? 0);
 
             $answer->update([
                 'manual_score' => [
@@ -764,13 +843,13 @@ class AdminToeflController extends Controller
 
         // Update raw_score di test_scores untuk subtest essay
         $totalEssayScore = EssayAnswer::where('test_attempt_id', $testAttempt->id)
-            ->sum('final_score') ?? 0;
+            ->sum('final_score') / 5 ?? 0;
 
-        TestScore::where('test_attempt_id', $testAttempt->id)
-            ->where('subtest_id', 4)
-            ->update(['raw_score' => $totalEssayScore]);
+        TestScore::updateOrCreate(
+            ['test_attempt_id' => $testAttempt->id, 'subtest_id' => 4],
+            ['raw_score' => $totalEssayScore]
+        );
 
         return back();
     }
-
 }

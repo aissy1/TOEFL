@@ -1,4 +1,5 @@
 import PageHeader from '@/components/page-header';
+import Pagination from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { PageProps, type BreadcrumbItem } from '@/types';
@@ -16,7 +17,16 @@ interface User {
 }
 
 interface Props extends PageProps {
-    users: User[];
+    users: {
+        data: User[];
+        current_page: number;
+        last_page: number;
+        next_page_url: string | null;
+        prev_page_url: string | null;
+        from: number;
+        to: number;
+        total: number;
+    };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -90,7 +100,7 @@ export default function UsersIndex({ users }: Props) {
 
                 {/* Table */}
                 <div className="overflow-x-auto rounded border bg-white">
-                    <table className="w-full text-sm">
+                    <table className="w-full table-fixed text-sm">
                         <thead className="bg-gray-100 text-gray-700">
                             <tr>
                                 <th className="px-4 py-3 text-left">Name</th>
@@ -101,8 +111,8 @@ export default function UsersIndex({ users }: Props) {
                             </tr>
                         </thead>
                         <tbody>
-                            {users.length > 0 ? (
-                                users.map((user) => (
+                            {users.data.length > 0 ? (
+                                users.data.map((user) => (
                                     <tr key={user.id} className="border-t">
                                         <td className="px-4 py-3">{user.name}</td>
                                         <td className="px-4 py-3">{user.email}</td>
@@ -111,14 +121,14 @@ export default function UsersIndex({ users }: Props) {
                                         <td className="px-4 py-3 text-center">
                                             <Button
                                                 onClick={() => handleRoute('edit', user.id)}
-                                                className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:cursor-pointer hover:bg-blue-700"
+                                                className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
                                             >
                                                 Edit
                                             </Button>
                                             &nbsp;
                                             <Button
                                                 onClick={() => handleRoute('delete', user.id)}
-                                                className="rounded bg-red-500 px-3 py-1 text-sm text-white hover:cursor-pointer hover:bg-red-700"
+                                                className="rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-700"
                                             >
                                                 Delete
                                             </Button>
@@ -126,10 +136,23 @@ export default function UsersIndex({ users }: Props) {
                                     </tr>
                                 ))
                             ) : (
-                                <tr></tr>
+                                <tr>
+                                    <td colSpan={5} className="py-6 text-center">
+                                        No data found.
+                                    </td>
+                                </tr>
                             )}
                         </tbody>
                     </table>
+                    <Pagination
+                        currentPage={users.current_page}
+                        lastPage={users.last_page}
+                        nextPageUrl={users.next_page_url}
+                        prevPageUrl={users.prev_page_url}
+                        from={users.from ?? 0}
+                        to={users.to ?? 0}
+                        total={users.total}
+                    />
                 </div>
             </div>
         </AppLayout>

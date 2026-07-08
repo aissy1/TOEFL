@@ -44,7 +44,7 @@ export default function TestAttemptsIndex({ toefls }: { toefls: ToeflAttempt[] }
                         <tbody>
                             {toefls.length === 0 && (
                                 <tr>
-                                    <td colSpan={4} className="px-4 py-6 text-center text-gray-500">
+                                    <td colSpan={3} className="px-4 py-6 text-center text-gray-500">
                                         No data available
                                     </td>
                                 </tr>

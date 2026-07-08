@@ -95,6 +95,8 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
     const [disabled, setDisabled] = useState(true);
     const { flash } = usePage().props as any;
 
+    const essayPassingScore = subtests.find((subtest) => subtest.name.toLowerCase() === 'essay')?.passing_score ?? 0;
+
     // Inisialisasi form dengan data essay
     const { data, setData, post, put, processing } = useForm({
         grades: essayAnswers.map((item) => ({
@@ -109,17 +111,26 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
         return results.scores.find((s) => s.subtest_id === subtestId);
     };
 
-    const totalRawScore = results.scores.reduce((sum, s) => sum + (s.raw_score ?? 0), 0);
-    const maxRawScore = results.scores.reduce((sum, s) => {
-        const subtest = subtests.find((z) => z.id === s.subtest_id);
-        return sum + (subtest ? subtest.passing_score : 0);
-    }, 0);
+    const essaySubtestId = subtests.find((subtest) => subtest.name.toLowerCase() === 'essay')?.id;
 
-    const totalScaledScore = results.scores.reduce((sum, s) => {
-        const subtest = subtests.find((z) => z.id === s.subtest_id);
-        return sum + (subtest && s.scaled_score ? Math.round((s.scaled_score / results.scores.length) * 10) : 0);
-    }, 0);
-    const maxScaledScore = Math.round(((results.scores.length * 68) / 3) * 10);
+    const totalRawScore = results.scores
+        .filter((score) => score.subtest_id !== essaySubtestId)
+        .reduce((sum, score) => sum + (score.raw_score ?? 0), 0);
+
+    // const maxRawScore = results.scores.reduce((sum, s) => {
+    //     const subtest = subtests.find((z) => z.id === s.subtest_id);
+    //     return sum + (subtest ? subtest.passing_score : 0);
+    // }, 0);
+
+    const maxRawScore = subtests.reduce((sum, subtest) => sum + subtest.passing_score, 0) - essayPassingScore;
+
+    const scoredSubtests = results.scores.filter((score) => score.scaled_score !== null);
+
+    const totalScaled = scoredSubtests.reduce((sum, score) => sum + (score.scaled_score ?? 0), 0);
+
+    const finalScore = Math.round((totalScaled / scoredSubtests.length) * 10);
+
+    const maxScaledScore = Math.round(((68 * scoredSubtests.length) / 3) * 10);
 
     // Update field per item
     const updateGrade = (index: number, field: string, value: any) => {
@@ -247,16 +258,18 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                         <h2 className="mt-1 text-3xl font-bold text-blue-700">{user.email}</h2>
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-gray-500">Total Raw Score</p>
+                        <p className="text-sm font-medium text-gray-500">Raw Score</p>
                         <h2 className="mt-1 text-3xl font-bold text-blue-700">
                             {totalRawScore}
                             <span className="ml-2 text-lg font-normal text-gray-500">/ {maxRawScore}</span>
                         </h2>
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-gray-500">Total Score</p>
+                        <p className="text-sm font-medium text-gray-500">
+                            Final Score <span className="text-xs">(exclude essay)</span>
+                        </p>
                         <h2 className="mt-1 text-3xl font-bold text-blue-700">
-                            {totalScaledScore}
+                            {finalScore}
                             <span className="ml-2 text-lg font-normal text-gray-500">/ {maxScaledScore}</span>
                         </h2>
                     </div>

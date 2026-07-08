@@ -97,6 +97,8 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
     };
 
     const handleSubmit = () => {
+        if (isSubmitting) return;
+
         setIsSubmitting(true);
 
         console.log('Submitting data:', data);
@@ -105,6 +107,8 @@ const WritingQuestion = forwardRef(function WritingQuestion({ onComplete, sectio
             onFinish: (res) => {
                 console.log('Submission status:', res);
                 setIsSubmitting(false);
+            },
+            onSuccess: () => {
                 onComplete();
             },
         });

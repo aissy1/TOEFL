@@ -1,4 +1,5 @@
 import PageHeader from '@/components/page-header';
+import Pagination from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -37,7 +38,16 @@ interface Props {
         total_questions: number;
         passing_score?: number;
     };
-    questions: Question[];
+    questions: {
+        data: Question[];
+        current_page: number;
+        last_page: number;
+        next_page_url: string | null;
+        prev_page_url: string | null;
+        from: number;
+        to: number;
+        total: number;
+    };
     totalScore: number;
 }
 
@@ -53,6 +63,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function QuestionsDetails({ toefl, subtest, toeflSubtest, questions, totalScore }: Props) {
+    const questionItems = questions.data;
+
     const handleRoute = (mode: 'create' | 'edit' | 'delete' | 'preview' | 'indexPassage', idQuestion?: number) => {
         switch (mode) {
             case 'create':
@@ -102,7 +114,7 @@ export default function QuestionsDetails({ toefl, subtest, toeflSubtest, questio
                     icon={<LibraryBig size={20} />}
                     action={
                         <>
-                            {questions.length < toeflSubtest.total_questions && (
+                            {questions.total < toeflSubtest.total_questions && (
                                 <button
                                     onClick={() => handleRoute('create')}
                                     className="cursor-pointer rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700"
@@ -140,7 +152,7 @@ export default function QuestionsDetails({ toefl, subtest, toeflSubtest, questio
                                 <th className="py-3 text-center">{toefl.name}</th>
                                 <th className="py-3 text-center">{subtest.name}</th>
                                 <th className="px-4 py-3 text-center">{toefl.status}</th>
-                                <th className="px-4 py-3 text-center">{subtest.total_questions ?? questions.length}</th>
+                                <th className="px-4 py-3 text-center">{questions.total}</th>
                                 <th className="px-4 py-3 text-center">{toeflSubtest.total_questions}</th>
                                 <th className="px-4 py-3 text-center">{totalScore ?? 0}</th>
                                 <th className="px-4 py-3 text-center">{toeflSubtest.passing_score ?? 0}</th>
@@ -163,17 +175,17 @@ export default function QuestionsDetails({ toefl, subtest, toeflSubtest, questio
                             </tr>
                         </thead>
                         <tbody>
-                            {questions.length === 0 ? (
+                            {questionItems.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="py-6 text-center text-gray-500">
                                         No questions available
                                     </td>
                                 </tr>
                             ) : (
-                                questions.map((q, index) => (
+                                questionItems.map((q) => (
                                     <tr key={q.id} onClick={() => handleRoute('preview', q.id)} className="cursor-pointer border-t hover:bg-gray-50">
-                                        <td className="py-3 text-center">{index + 1}</td>
-                                        <td className="px-4 py-3 text-center">{q.passage_id}</td>
+                                        <td className="py-3 text-center">{q.order}</td>
+                                        <td className="px-4 py-3 text-center">{q.passage_id ? q.passage_id : '-'}</td>
                                         <td className="px-4 py-3">{q.question}</td>
                                         <td className="px-4 py-3 text-center">{q.question_type}</td>
                                         <td className="px-4 py-3 text-center">{q.point}</td>
@@ -204,6 +216,15 @@ export default function QuestionsDetails({ toefl, subtest, toeflSubtest, questio
                             )}
                         </tbody>
                     </table>
+                    <Pagination
+                        currentPage={questions.current_page}
+                        lastPage={questions.last_page}
+                        nextPageUrl={questions.next_page_url}
+                        prevPageUrl={questions.prev_page_url}
+                        from={questions.from ?? 0}
+                        to={questions.to ?? 0}
+                        total={questions.total}
+                    />
                 </div>
             </div>
         </AppLayout>

@@ -29,6 +29,10 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
     const currentQuestion = flatQuestions[data.currentQuestionIndex];
     const currentReading = questions.find((r) => r.id === currentQuestion.readingId)!;
 
+    const currentReadingQuestions = currentReading.questions;
+
+    const currentQuestionIndex = currentReadingQuestions.findIndex((q: any) => q.id === currentQuestion.id) + 1;
+
     const toggleFlag = (id: number) => {
         setFlag((prev) => ({ ...prev, [id]: !prev[id] }));
         console.log(flagged);
@@ -106,8 +110,12 @@ const ReadingQuestion = forwardRef(function ReadingQuestion({ onComplete, sectio
 
             {/* Reading Box */}
             <div className="max-h-[50vh] w-full flex-1 space-y-4 overflow-auto rounded-sm bg-white p-4 shadow-sm lg:max-h-[85vh] lg:w-1/3">
-                <h2 className="text-xl font-semibold select-none">Passage : {currentReading.title}</h2>
-                {/* <p className="text-justify break-words text-gray-700 select-none">{(currentReading as any).passage}</p> */}
+                <div className="flex w-full items-end justify-between">
+                    <h2 className="text-xl font-semibold select-none">Passage : {currentReading.title}</h2>
+                    <p className="text-sm text-gray-600 select-none">
+                        Question {currentQuestionIndex} of {currentReadingQuestions.length}
+                    </p>
+                </div>
                 <textarea
                     className="w-full resize-none text-justify whitespace-pre-line text-gray-700 select-none"
                     value={(currentReading as any).passage}

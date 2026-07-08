@@ -12,6 +12,9 @@
 .env.production
 .phpactor.json
 .phpunit.result.cache
+BUG_REPORT.md
+TEST_REPORT.md
+/test-artifacts/tep-flow-user-2/
 Homestead.json
 Homestead.yaml
 npm-debug.log
@@ -44,3 +47,6 @@ services/aes/.cache/
 
 # SBERT model cache
 services/aes/.sentence_transformers/
+
+#docs
+/docs/

@@ -21,6 +21,18 @@ class TestUnitController extends Controller
     protected $questionsSubtests;
     protected $scoringService;
 
+    private const TEST_SESSION_KEYS = [
+        'username',
+        'toefl_id',
+        'attempt_id',
+        'status',
+        'answeredCounts',
+        'ReadingScore',
+        'ListeningScore',
+        'StructureScore',
+        'SpeakingScore',
+    ];
+
     public function __construct(questionsSubtests $questionsSubtests, scoringService $scoringService)
     {
         $this->questionsSubtests = $questionsSubtests;
@@ -55,6 +67,31 @@ class TestUnitController extends Controller
             ->first();
     }
 
+    private function restoreAnsweredCounts(TestAttempt $attempt): array
+    {
+        $scoredSubtestIds = TestScore::where('test_attempt_id', $attempt->id)
+            ->pluck('subtest_id')
+            ->all();
+
+        $answeredEssayToeflSubtestIds = EssayAnswer::query()
+            ->join('questions', 'essay_answers.question_id', '=', 'questions.id')
+            ->where('essay_answers.test_attempt_id', $attempt->id)
+            ->pluck('questions.toefl_subtest_id')
+            ->all();
+
+        return ToeflSubtest::with('subtest')
+            ->where('toefl_id', $attempt->toefl_id)
+            ->get()
+            ->filter(function ($toeflSubtest) use ($scoredSubtestIds, $answeredEssayToeflSubtestIds) {
+                return in_array($toeflSubtest->subtest_id, $scoredSubtestIds)
+                    || in_array($toeflSubtest->id, $answeredEssayToeflSubtestIds);
+            })
+            ->mapWithKeys(fn($toeflSubtest) => [
+                strtolower($toeflSubtest->subtest->name) => true,
+            ])
+            ->toArray();
+    }
+
     public function ThrowSession(Request $request)
     {
         $request->validate([
@@ -85,14 +122,22 @@ class TestUnitController extends Controller
         $oldAttempt = $this->checkAttempt($username, $toefl->id);
 
         if ($oldAttempt) {
-            // dd($attempt);
+            $isFinished = !is_null($oldAttempt->finished_at);
+
             session([
                 'username' => $username,
                 'toefl_id' => $toefl->id,
                 'attempt_id' => $oldAttempt->id,
-                'status' => 'finished',
+                'status' => $isFinished ? 'finished' : 'progress',
+                'answeredCounts' => $this->restoreAnsweredCounts($oldAttempt),
             ]);
-            return redirect()->route('scoreboard', [$oldAttempt->id]);
+
+            if ($isFinished) {
+                return redirect()->route('scoreboard');
+            }
+
+            return redirect()->route('test.show', ['section' => 'general'])
+                ->with('success', 'Continuing your existing test attempt.');
         } else {
             $attempt = TestAttempt::create([
                 'user_id' => $account->id,
@@ -119,7 +164,6 @@ class TestUnitController extends Controller
         }
 
         // check attempts user
-
 
         $toeflSubtests = ToeflSubtest::with('subtest')
             ->where('toefl_id', $toeflId)
@@ -189,9 +233,40 @@ class TestUnitController extends Controller
     {
         $attemptId = session('attempt_id');
         $toeflId = session('toefl_id');
+
+        if (!$attemptId || !$toeflId) {
+            return redirect()->route('home')
+                ->with('error', 'Your test session has expired. Please login again to continue.');
+        }
+
+        $validated = $request->validate([
+            'toeflSubtests' => ['required', 'integer'],
+            'section' => ['required', 'string', 'in:reading-question,listening-question,structure-question,speaking-question,essay-question,writing-question'],
+            'answers' => ['nullable', 'array'],
+        ]);
+
         $toeflSubtests = $request->input('toeflSubtests');
         $section = $request->input('section');
-        $answers = $request->input('answers', []);
+        $answers = $validated['answers'] ?? [];
+
+
+        $attempt = TestAttempt::where('id', $attemptId)
+            ->where('toefl_id', $toeflId)
+            ->first();
+
+        if (!$attempt) {
+            return redirect()->route('home')
+                ->with('error', 'Your test attempt could not be found. Please start the test again.');
+        }
+
+        $currentToeflSubtest = ToeflSubtest::with('subtest')
+            ->where('id', $toeflSubtests)
+            ->where('toefl_id', $toeflId)
+            ->first();
+
+        if (!$currentToeflSubtest) {
+            return back()->with('error', 'Invalid subtest submission.');
+        }
 
         $allSection = ToeflSubtest::where('toefl_id', $toeflId)->count();
         $subtestName = str_replace('-question', '', $section);
@@ -236,7 +311,10 @@ class TestUnitController extends Controller
         session()->put("answeredCounts.$subtestName", true);
 
         if (!is_null($score ?? null)) {
-            TestScore::create([
+            TestScore::updateOrCreate([
+                'test_attempt_id' => $attemptId,
+                'subtest_id' => $subtestId,
+            ], [
                 'test_attempt_id' => $attemptId,
                 'subtest_id' => $subtestId,
                 'raw_score' => $score,
@@ -257,8 +335,9 @@ class TestUnitController extends Controller
 
     public function resetTest()
     {
-        // Clear all test-related session data
-        session()->flush();
+        // Clear only TOEFL test state. Do not flush the whole Laravel session,
+        // because the same browser session may also hold an authenticated admin tab.
+        session()->forget(self::TEST_SESSION_KEYS);
 
         return redirect()->route('home');
     }
@@ -279,9 +358,15 @@ class TestUnitController extends Controller
             ->where('toefl_id', $toeflId)
             ->first();
 
-        $essayAnswers = EssayAnswer::where('test_attempt_id', $attemptId)
-            ->get('final_score')
-            ->first();
+        if (!$resultAttempt) {
+            session()->forget(['attempt_id', 'status', 'answeredCounts']);
+
+            return redirect()->route('home')
+                ->with('error', 'Your test attempt could not be found. Please start the test again.');
+        }
+
+        $essayScore = EssayAnswer::where('test_attempt_id', $attemptId)
+            ->avg('final_score');
 
         $toeflSubtest = ToeflSubtest::with('subtest')
             ->where('toefl_id', $toeflId)
@@ -290,11 +375,11 @@ class TestUnitController extends Controller
 
 
         $scaleCEFR = match (true) {
-            $essayAnswers?->final_score === null => null,
-            $essayAnswers?->final_score >= 76 => 'B2',
-            $essayAnswers?->final_score >= 51 => 'B1',
-            $essayAnswers?->final_score >= 26 => 'A2',
-            $essayAnswers?->final_score <= 25 => 'A1',
+            $essayScore === null => null,
+            $essayScore >= 76 => 'B2',
+            $essayScore >= 51 => 'B1',
+            $essayScore >= 26 => 'A2',
+            $essayScore <= 25 => 'A1',
         };
 
         $answeredSubtests = session('answeredCounts', []);
@@ -328,10 +413,9 @@ class TestUnitController extends Controller
 
         return Inertia::render('scoreboard', [
             'result' => $result,
-            'essay_score' => $essayAnswers?->final_score,
+            'essay_score' => $essayScore,
             'scale_cefr' => $scaleCEFR,
             'username' => $username
         ]);
     }
 }
-

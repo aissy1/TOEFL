@@ -60,6 +60,25 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface UsersPagination {
+    data: User[];
+    links: PaginationLink[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+}
+
+interface Props {
+    users: UsersPagination;
+}
+
 export interface ReadingSet {
     id: number;
     title: string;

@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\EssayAnswer;
+use App\Models\TestScore;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -151,6 +152,11 @@ class AesScoringJob implements ShouldQueue
                 'final_score' => $totalScore,
                 'kategori' => $kategori,
             ]);
+
+        TestScore::createdOrUpdate(
+            ['test_attempt_id' => $testAttemptId, 'subtest_id' => 4],
+            ['raw_score' => $totalScore]
+        );
 
         Log::info("AES: Attempt {$testAttemptId} — " .
             "final_score: {$totalScore} ({$kategori})");

@@ -1,10 +1,10 @@
 <?php
 
+use App\Http\Controllers\AdminToeflController;
+use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\TestUnitController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\TestUnitController;
-use App\Http\Controllers\AdminUserController;
-use App\Http\Controllers\AdminToeflController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -19,12 +19,9 @@ Route::post('/reset-test', [TestUnitController::class, 'resetTest'])->name('rese
 Route::post('/submit-session', [TestUnitController::class, 'ThrowSession'])->name('ThrowSession');
 
 Route::get('/scoreboard', [TestUnitController::class, 'scoreboard'])->name('scoreboard');
-;
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('admin/dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('admin/dashboard', [AdminToeflController::class, 'dashboard'])->name('dashboard');
 
     // Admin User Management Routes
     Route::get('/admin/users', [AdminUserController::class, 'getUsers'])->name('admin.users');
@@ -51,7 +48,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/admin/subtest/update/{subtest}', [AdminToeflController::class, 'updateSubtest'])->name('admin.subtests.update');
     Route::delete('/admin/subtest/delete/{id}', [AdminToeflController::class, 'destroySubtest'])->name('admin.subtests.delete');
 
-
     // Admin Questions Management Routes
     Route::get('/admin/questions', [AdminToeflController::class, 'getBankQuestions'])->name('admin.questions');
     Route::get('/admin/questions/{toefl}/subtest/{toeflSubtest}/{subtest}', [AdminToeflController::class, 'getQuestionsSubtest'])->name('admin.questions.subtest');
@@ -62,7 +58,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/admin/questions/{toefl}/subtest/{toeflSubtest}/{subtest}/update/{id}', [AdminToeflController::class, 'updateQuestionsSubtest'])->name('admin.questions.subtest.update');
     Route::delete('/admin/questions/{toefl}/subtest/{toeflSubtest}/{subtest}/delete/{id}', [AdminToeflController::class, 'deleteQuestionsSubtest'])->name('admin.questions.subtest.delete');
 
-    //Admin Question Passage Management Routes
+    // Admin Question Passage Management Routes
     Route::get('/admin/questions/passage', [AdminToeflController::class, 'getPassages'])->name('admin.questions.passage');
     Route::get('/admin/questions/passage/preview/{id}', [AdminToeflController::class, 'viewPassages'])->name('admin.questions.passage.view');
     Route::get('/admin/questions/passage/create', [AdminToeflController::class, 'createPassages'])->name('admin.questions.passage.create');
@@ -71,10 +67,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/admin/questions/passage/put/{id}', [AdminToeflController::class, 'updatePassages'])->name('admin.questions.passage.update');
     Route::delete('/admin/questions/passage/delete/{id}', [AdminToeflController::class, 'deletePassages'])->name('admin.questions.passage.delete');
 
-    //Passage Audio Status Route
+    // Passage Audio Status Route
     Route::get('/admin/audio-notifications', [AdminToeflController::class, 'audioNotifications']);
 
-    //Admin Test Attempts Management Routes
+    // Admin Test Attempts Management Routes
     Route::get('/admin/attempts', [AdminToeflController::class, 'getAttempts'])->name('admin.attempts');
     Route::get('/admin/attempts/toefl/{id}', [AdminToeflController::class, 'getToeflAttempts'])->name('admin.attempts.toefl');
     Route::get('/admin/attempts/toefl/{id}/{userId}', [AdminToeflController::class, 'viewUserAttempts'])->name('admin.attempts.toefl.view');
@@ -83,5 +79,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/admin/attempts/toefl/{attempt}', [AdminToeflController::class, 'gradeSystem'])->name('admin.attempts.gradeSystem');
 });
 
-require __DIR__ . '/settings.php';
-require __DIR__ . '/auth.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';

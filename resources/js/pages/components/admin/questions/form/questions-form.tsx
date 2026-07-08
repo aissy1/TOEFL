@@ -146,7 +146,6 @@ export default function QuestionsForm({ initialData, submitUrl, method = 'post' 
                             className="rounded border px-3 py-2"
                             type="number"
                             value={data.order}
-                            min={lastQuestion}
                             disabled={disabled}
                             onChange={(e) => setData('order', Number(e.target.value))}
                         />

@@ -21,7 +21,9 @@ class DatabaseSeeder extends Seeder
         // ]);
         $this->call([
             UserSeeder::class,
-            // ToeflSeeder::class, // subtest master
+            ToeflSeeder::class, // subtest master
+            DashboardPracticeBankSoalSeeder::class, // bank soal
+            TepExampleSeeder::class, // sample test package
         ]);
     }
 }
