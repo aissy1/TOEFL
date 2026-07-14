@@ -1,5 +1,6 @@
 import PageHeader from '@/components/page-header';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
@@ -106,6 +107,14 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
             final_score_type: item.final_score_type ?? '',
         })),
     });
+
+    const statusColor: Record<string, string> = {
+        pending: 'bg-yellow-100 text-yellow-800',
+        processing: 'bg-blue-100 text-blue-800',
+        completed: 'bg-green-100 text-green-800',
+        failed: 'bg-red-100 text-red-800',
+        cancelled: 'bg-gray-100 text-gray-800',
+    };
 
     const getScoreForSubtest = (subtestId: number): Score | undefined => {
         return results.scores.find((s) => s.subtest_id === subtestId);
@@ -346,7 +355,7 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-2 overflow-x-auto rounded border bg-white p-4 shadow-sm">
+                        <div className="flex flex-col gap-2 overflow-x-auto shadow-sm">
                             {essayAnswers.map((item, index) => {
                                 const grade = data.grades[index];
                                 const systemScore = item.similarity_score ?? 0;
@@ -355,14 +364,28 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                                     <div key={item.id} className="flex w-full rounded-lg border p-2">
                                         {/* Left: Question & Answer */}
                                         <div className="w-1/2 px-2">
-                                            <p className="font-medium">
-                                                <span>Question {index + 1} : </span>
-                                                {item.question}
-                                            </p>
-                                            <p className="text-sm text-gray-500">
-                                                Answer Length : <span>{item.word_count} words</span>
-                                            </p>
-                                            <p className="mt-2">{item.answer_text}</p>
+                                            <div>
+                                                <Label>
+                                                    Status :
+                                                    <span
+                                                        className={`ml-2 rounded-full px-2 py-1 text-xs font-semibold ${
+                                                            statusColor[item.status] ?? 'bg-gray-100 text-gray-800'
+                                                        }`}
+                                                    >
+                                                        {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                                                    </span>
+                                                </Label>
+                                            </div>
+                                            <div>
+                                                <p className="font-medium">
+                                                    <span>Question {index + 1} : </span>
+                                                    {item.question}
+                                                </p>
+                                                <p className="text-sm text-gray-500">
+                                                    Answer Length : <span>{item.word_count} words</span>
+                                                </p>
+                                                <p className="mt-2">{item.answer_text}</p>
+                                            </div>
                                         </div>
 
                                         {/* Right: Scores */}
