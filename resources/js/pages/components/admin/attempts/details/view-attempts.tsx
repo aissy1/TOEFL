@@ -80,6 +80,7 @@ interface EssayAnswers {
     id: number;
     test_attempt_id: number;
     question: string;
+    model_answer: string;
     answer_text: string;
     similarity_score: number | null; // score per number
     content_cosine: number | null;
@@ -154,6 +155,7 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                 router.reload({
                     only: ['essayAnswers'],
                 });
+                console.log('Grading system completed successfully.');
             },
             onError: () => {
                 toast.error('An error occurred while grading. Please try again.');
@@ -319,21 +321,19 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                         <div className="flex items-center justify-between">
                             <h3 className="text-xl font-semibold">Essay Answer</h3>
                             <div className="flex items-center gap-1">
-                                {!graded && (
-                                    <Button
-                                        onClick={handleGradeSystem}
-                                        size="sm"
-                                        variant="outline"
-                                        disabled={
-                                            processing ||
-                                            (disabled
-                                                ? false
-                                                : data.grades.some((g) => g.manual_score_expert1 === null || g.manual_score_expert2 === null))
-                                        }
-                                    >
-                                        {processing ? 'Grading...' : 'Grade'}
-                                    </Button>
-                                )}
+                                <Button
+                                    onClick={handleGradeSystem}
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={
+                                        processing ||
+                                        (disabled
+                                            ? false
+                                            : data.grades.some((g) => g.manual_score_expert1 === null || g.manual_score_expert2 === null))
+                                    }
+                                >
+                                    {processing ? 'Grading...' : 'Grade'}
+                                </Button>
                                 {!disabled && (
                                     <Button onClick={() => handleButton('cancel')} variant="destructive" size="sm" disabled={processing}>
                                         Cancel
@@ -363,8 +363,8 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                                 return (
                                     <div key={item.id} className="flex w-full rounded-lg border p-2">
                                         {/* Left: Question & Answer */}
-                                        <div className="w-1/2 px-2">
-                                            <div>
+                                        <div className="w-1/2 px-4">
+                                            <div className="my-2">
                                                 <Label>
                                                     Status :
                                                     <span
@@ -376,15 +376,24 @@ export default function ViewAttempts({ user, results, subtests, toefl, essayAnsw
                                                     </span>
                                                 </Label>
                                             </div>
-                                            <div>
-                                                <p className="font-medium">
-                                                    <span>Question {index + 1} : </span>
-                                                    {item.question}
+                                            <div className="flex flex-col gap-4">
+                                                <div>
+                                                    <p className="font-medium">
+                                                        <span>Question {index + 1} : </span>
+                                                        {item.question}
+                                                    </p>
+                                                    <p className="text-sm text-gray-500">
+                                                        Answer Length : <span>{item.word_count} words</span>
+                                                    </p>
+                                                </div>
+                                                <p className="text-justify">
+                                                    <span className="font-medium">User Answer : </span>
+                                                    {item.answer_text}
                                                 </p>
-                                                <p className="text-sm text-gray-500">
-                                                    Answer Length : <span>{item.word_count} words</span>
+                                                <p className="text-justify">
+                                                    <span className="font-medium">Model Answer : </span>
+                                                    {item.model_answer}
                                                 </p>
-                                                <p className="mt-2">{item.answer_text}</p>
                                             </div>
                                         </div>
 

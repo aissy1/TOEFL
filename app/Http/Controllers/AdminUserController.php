@@ -53,7 +53,7 @@ class AdminUserController extends Controller
     }
 
     /**
-     * UPDATE 
+     * Update a user's profile and optionally replace their password.
      */
     public function update(Request $request, User $user)
     {
@@ -64,7 +64,7 @@ class AdminUserController extends Controller
             'password' => 'nullable|min:8|confirmed',
         ]);
 
-        if ($data['password']) {
+        if (filled($data['password'] ?? null)) {
             $data['password'] = Hash::make($data['password']);
         } else {
             unset($data['password']);

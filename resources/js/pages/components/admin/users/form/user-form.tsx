@@ -89,38 +89,26 @@ export default function UserForm({ initialData, submitUrl, method = 'post' }: Pr
                 </select>
             </div>
 
-            {/* Password */}
-            {method === 'put' && (
-                <div>
-                    <label className="block text-sm font-medium">Old Password </label>
-                    <div className="relative">
-                        <input
-                            type={showPassword ? 'text' : 'password'}
-                            className="w-full rounded border px-3 py-2 pr-10"
-                            value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
-                        />
-
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-3 flex cursor-pointer items-center text-gray-500"
-                        >
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                        </button>
-                    </div>
-                </div>
-            )}
-
             <div>
                 <label className="block text-sm font-medium">{method === 'put' ? 'New Password (optional)' : 'Password'}</label>
                 <input
-                    type="password"
+                    type={method === 'put' && showPassword ? 'text' : 'password'}
                     className="w-full rounded border px-3 py-2"
                     value={data.password}
-                    required
+                    required={method === 'post'}
+                    autoComplete="new-password"
                     onChange={(e) => setData('password', e.target.value)}
                 />
+                {method === 'put' && (
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="mt-2 inline-flex items-center gap-2 text-sm text-gray-500"
+                    >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showPassword ? 'Hide password' : 'Show password'}
+                    </button>
+                )}
                 {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
             </div>
 
@@ -131,7 +119,8 @@ export default function UserForm({ initialData, submitUrl, method = 'post' }: Pr
                     type="password"
                     className="w-full rounded border px-3 py-2"
                     value={data.password_confirmation}
-                    required
+                    required={method === 'post'}
+                    autoComplete="new-password"
                     onChange={(e) => setData('password_confirmation', e.target.value)}
                 />
                 {errors.password_confirmation && <p className="text-sm text-red-500">{errors.password_confirmation}</p>}

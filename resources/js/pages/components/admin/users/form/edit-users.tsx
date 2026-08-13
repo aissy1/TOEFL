@@ -22,7 +22,7 @@ export default function EditUser({ user }: { user: UserFormData }) {
             <Head title="Create Users" />
             <div className="flex h-full w-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <h1 className="mb-6 text-2xl font-semibold">Edit User</h1>
-                <UserForm submitUrl={`/admin/users/${user.id}`} method="put" initialData={user} />
+                <UserForm submitUrl={`/admin/users/update/${user.id}`} method="put" initialData={user} />
             </div>
         </AppLayout>
     );

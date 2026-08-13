@@ -745,6 +745,7 @@ class AdminToeflController extends Controller
                 return [
                     'id' => $item->id,
                     'question' => $item->questions->question,
+                    'model_answer' => $item->questions->keywords,
                     'answer_text' => $item->answer_text,
                     'similarity_score' => $item->similarity_score,
                     'content_cosine' => $item->content_cosine,
@@ -789,7 +790,7 @@ class AdminToeflController extends Controller
     public function gradeSystem(int $attempt)
     {
         $answers = EssayAnswer::where('test_attempt_id', $attempt)
-            ->whereIn('aes_status', ['failed', 'pending'])
+            // ->whereIn('aes_status', ['failed', 'pending'])
             ->get();
 
         if ($answers->isEmpty()) {
